@@ -1,28 +1,30 @@
-# ─── Object files ───
+# ─── Compiled object files ───
 *.o
 *.obj
 
-# ─── Binary executables ───
+# ─── Executables and binary output ───
 *.exe
 *.out
 *.elf
 *.bin
+main
+a.out
 
 # ─── Core dumps ───
 core
 
-# ─── Build directories ───
+# ─── Build artifacts ───
 /build/
 /bin/
 /dist/
 
-# ─── CMake, Make, Autotools ───
+# ─── Make/CMake/Autotools cache ───
+Makefile
 CMakeCache.txt
 CMakeFiles/
-Makefile
-configure
 config.log
 config.status
+configure
 autom4te.cache/
 
 # ─── Temporary files ───
@@ -30,28 +32,37 @@ autom4te.cache/
 *.swp
 *.tmp
 *.bak
-.DS_Store
+*.rej
+*.orig
 
-# ─── Editor/IDE files ───
+# ─── OS-specific noise ───
+.DS_Store  # macOS
+Thumbs.db  # Windows
+
+# ─── IDE/editor configs ───
 .vscode/
 .idea/
 *.code-workspace
 *.sublime-project
 *.sublime-workspace
 
-# ─── Debug output ───
+# ─── Debug output / trace files ───
 *.log
 *.trace
 *.dSYM/
 
-# ─── Lisp interpreter inputs (keep source, ignore intermediates) ───
-*.fasl
-*.lisp~
-*.lsp~
-*.cl~
-*.tmp.lisp
+# ─── Lisp: ignore temp but not source ───
+*.fasl          # compiled Lisp output
+*.lisp~         # editor backups
+*.lsp~          
+*.cl~           
+*.tmp.lisp      
 
-# ─── Optional: ignore test result artifacts ───
+# ─── Tests and scratch files ───
 *.testout
 *.result
-*.check  
+*.check
+
+# ─── Tags / navigation aids ───
+tags
+TAGS
