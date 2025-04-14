@@ -1,0 +1,57 @@
+# ─── Object files ───
+*.o
+*.obj
+
+# ─── Binary executables ───
+*.exe
+*.out
+*.elf
+*.bin
+
+# ─── Core dumps ───
+core
+
+# ─── Build directories ───
+/build/
+/bin/
+/dist/
+
+# ─── CMake, Make, Autotools ───
+CMakeCache.txt
+CMakeFiles/
+Makefile
+configure
+config.log
+config.status
+autom4te.cache/
+
+# ─── Temporary files ───
+*~
+*.swp
+*.tmp
+*.bak
+.DS_Store
+
+# ─── Editor/IDE files ───
+.vscode/
+.idea/
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+
+# ─── Debug output ───
+*.log
+*.trace
+*.dSYM/
+
+# ─── Lisp interpreter inputs (keep source, ignore intermediates) ───
+*.fasl
+*.lisp~
+*.lsp~
+*.cl~
+*.tmp.lisp
+
+# ─── Optional: ignore test result artifacts ───
+*.testout
+*.result
+*.check  
