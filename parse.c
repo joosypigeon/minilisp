@@ -1,0 +1,41 @@
+#include "parse.h"
+#include "tokenize.h"
+
+
+Object *parse_expr();
+
+Object *parse_list() {
+    current_token++;  // skip the opening '('
+
+    Object *head = NIL;
+    Object *tail = NIL;
+
+    while (current_token < num_tokens && strcmp(tokens[current_token], ")") != 0) {
+        Object *item = parse_expr();
+        Object *node = cons(item, NIL);
+
+        if (head == NIL) {
+            head = node;
+            tail = node;
+        } else {
+            tail->cdr = node;
+            tail = node;
+        }
+    }
+
+    current_token++;  // skip the closing ')'
+    return head;
+}
+
+
+Object *parse_expr() {
+    char *tok = tokens[current_token];
+    if (strcmp(tok, "(") == 0) {
+        return parse_list();
+    } 
+    current_token++;
+    char *end;
+    long val = strtol(tok, &end, 10);
+    if (*end == '\0') return make_number(val);
+    return make_symbol(tok);
+}
