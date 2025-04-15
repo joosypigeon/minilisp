@@ -2,6 +2,125 @@
 #include "debug.h"
 #include "symbols.h"
 
+
+
+typedef Object *(*SpecialFormHandler)(Env *, Object *);
+
+Object *handle_quote(Env *env, Object *expr) {
+    return cadr(expr);
+}
+
+Object *handle_define(Env *local, Object *expr) {
+    Object *second = cadr(expr);
+    if (second->type == TYPE_SYMBOL) {
+        Object *val = eval(local, caddr(expr));
+        env_define(local, second->symbol, val);
+        return val;
+    }
+    if(second->type==TYPE_PAIR){
+        DEBUG_PRINT_VERBOSE("found function\n");
+        Object *name = car(second);
+        if(name->type!=TYPE_SYMBOL){
+            DEBUG_PRINT_ERROR("TYPE ERROR: expected function name\n");
+            exit(1);
+        }
+        Object* parameters = cdr(second);
+        Object *body = caddr(expr);
+        if(body->type!=TYPE_PAIR){
+            DEBUG_PRINT_ERROR("TYPE ERROR: expected function body\n");
+            exit(1);
+        }
+        Env *env = push_env(local);
+        Object* lambda = make_lambda(parameters, body, env);
+
+        env_define(local, name->symbol, lambda);
+
+        return lambda;
+    }
+
+    DEBUG_PRINT_ERROR("Invalid define form\n");
+    exit(1);
+}
+
+Object *handle_plus(Env *local, Object *expr) {
+    int sum = 0;
+    Object *iter = cdr(expr);
+    while (iter != NIL) {
+        Object *item = car(iter);      // extract current item
+        Object *val = eval(local, item);   // evaluate
+        if (val->type != TYPE_INT) {
+            DEBUG_PRINT_ERROR("Type error: expected int\n");
+            exit(1);
+        }
+        sum += val->int_val;
+        iter = cdr(iter);              // move to next
+    }
+
+    Object* result = make_number(sum);
+    return result;
+}
+
+Object *handle_times(Env *local, Object *expr) {
+    int sum = 1;
+    Object *iter = cdr(expr);
+    while (iter != NIL) {
+        Object *item = car(iter);      // extract current item
+        Object *val = eval(local, item);   // evaluate
+        if (val->type != TYPE_INT) {
+            DEBUG_PRINT_ERROR("Type error: expected int\n");
+            exit(1);
+        }
+        sum *= val->int_val;
+        iter = cdr(iter);              // move to next
+    }
+
+    Object* result = make_number(sum);
+    return result;
+}
+
+Object *handle_lambda(Env *local, Object *expr) {
+    Env *env = push_env(local);
+    Object* params = cadr(expr);
+    if(params->type!=TYPE_PAIR && params->type!=TYPE_NIL){
+        DEBUG_PRINT_ERROR("TYPE ERROR: expected parameters\n");
+        exit(1);
+    }
+    Object *body = caddr(expr);
+    /*
+    if(body->type!=TYPE_PAIR && body->type!=TYPE_INT){
+        DEBUG_PRINT_ERROR("TYPE ERROR: expected function body\n");
+        exit(1);
+    }
+    */
+    Object* lambda = make_lambda(params, body, env);
+    return lambda;
+}
+
+Object *handle_equal(Env *local, Object *expr){
+    Object *second = eval(local, cadr(expr));
+    Object *third = eval(local, caddr(expr));
+    return lisp_equal(second, third);
+}
+
+typedef struct {
+    const char *symbol;
+    SpecialFormHandler handler;
+} DispatchEntry;
+
+DispatchEntry special_forms[] = {
+    { SYM_QUOTE, handle_quote },
+    { SYM_DEFINE, handle_define },
+    { SYM_PLUS, handle_plus},
+    { SYM_TIMES, handle_times},
+    { SYM_LAMBDA, handle_lambda},
+    { SYM_EQUAL, handle_equal},
+    // ... add more here
+    { NULL, NULL }
+};
+
+
+
+
 Object *eval(Env *local, Object *expr);
 
 Object* eval_function(Object* lambda, Object* args){
@@ -46,6 +165,12 @@ Object *eval(Env *local, Object *expr) {
     } else if (expr->type == TYPE_PAIR) {
         Object *first = car(expr);
         if (first->type == TYPE_SYMBOL) {
+            for (int i = 0; special_forms[i].symbol != NULL; i++) {
+                if (strcmp(first->symbol, special_forms[i].symbol) == 0) {
+                    return special_forms[i].handler(local, expr);
+                }
+            }
+/*
             if (strcmp(first->symbol, SYM_QUOTE) == 0) {
                 return cadr(expr);
             }
@@ -111,7 +236,14 @@ Object *eval(Env *local, Object *expr) {
                 Object* result = make_number(sum);
                 return result;
             }  
+            if (strcmp(first->symbol, SYM_EQUAL) == 0) {
+                Object *second = eval(local, cadr(expr));
+                Object *third = eval(local, caddr(expr));
+                return lisp_equal(second, third);
+            }
+            */   
             if (strcmp(first->symbol, SYM_LAMBDA) == 0) {
+       
                 Env *env = push_env(local);
                 Object* params = cadr(expr);
                 if(params->type!=TYPE_PAIR && params->type!=TYPE_NIL){
@@ -128,11 +260,7 @@ Object *eval(Env *local, Object *expr) {
                 Object* lambda = make_lambda(params, body, env);
                 return lambda;
             }
-            if (strcmp(first->symbol, SYM_EQUAL) == 0) {
-                Object *second = eval(local, cadr(expr));
-                Object *third = eval(local, caddr(expr));
-                return lisp_equal(second, third);
-            }
+
             /* expect function call*/
             Object *lambda = env_lookup(local, first->symbol);
             if(lambda->type!=TYPE_LAMBDA){
