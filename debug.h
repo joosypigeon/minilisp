@@ -4,7 +4,6 @@
 #include <stdio.h>
 
 // Define debug levels using an enum for clarity
-// Define preprocessor macros for use in #if
 #define DEBUG_LEVEL_NONE    0
 #define DEBUG_LEVEL_ERROR   1
 #define DEBUG_LEVEL_WARN    2
@@ -17,27 +16,31 @@
 #endif
 
 #if DEBUG_LEVEL >= DEBUG_LEVEL_ERROR
-    #define DEBUG_PRINT_ERROR(...)   printf("ERROR: " __VA_ARGS__)
+    #define DEBUG_PRINT_ERROR(fmt, ...) \
+        printf("ERROR   [%s:%d]: " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
 #else
-    #define DEBUG_PRINT_ERROR(...)   ((void)0)
+    #define DEBUG_PRINT_ERROR(fmt, ...) ((void)0)
 #endif
 
 #if DEBUG_LEVEL >= DEBUG_LEVEL_WARN
-    #define DEBUG_PRINT_WARN(...)    printf("WARN: " __VA_ARGS__)
+    #define DEBUG_PRINT_WARN(fmt, ...) \
+        printf("WARNING [%s:%d]: " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
 #else
-    #define DEBUG_PRINT_WARN(...)    ((void)0)
+    #define DEBUG_PRINT_WARN(fmt, ...) ((void)0)
 #endif
 
 #if DEBUG_LEVEL >= DEBUG_LEVEL_INFO
-    #define DEBUG_PRINT_INFO(...)    printf("INFO: " __VA_ARGS__)
+    #define DEBUG_PRINT_INFO(fmt, ...) \
+        printf("INFO    [%s:%d]: " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
 #else
-    #define DEBUG_PRINT_INFO(...)    ((void)0)
+    #define DEBUG_PRINT_INFO(fmt, ...) ((void)0)
 #endif
 
 #if DEBUG_LEVEL >= DEBUG_LEVEL_VERBOSE
-    #define DEBUG_PRINT_VERBOSE(...) printf("VERBOSE: " __VA_ARGS__)
+    #define DEBUG_PRINT_VERBOSE(fmt, ...) \
+        printf("VERBOSE [%s:%d]: " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
 #else
-    #define DEBUG_PRINT_VERBOSE(...) ((void)0)
+    #define DEBUG_PRINT_VERBOSE(fmt, ...) ((void)0)
 #endif
 
 #define _STR_HELPER(x) #x
