@@ -69,6 +69,31 @@ Object *cadr(Object *obj) {
 
 Object *caddr(Object *obj) { return car(cdr(cdr(obj))); }
 
+int list_length(Object *obj) {
+    if (obj == NIL) return 0;
+
+    int len = 0;
+
+    while (obj != NIL) {
+        if (!obj) {
+            DEBUG_PRINT_ERROR("unexpected NULL object in list\n");
+            exit(1);
+        }
+
+        if (obj->type != TYPE_PAIR) {
+            DEBUG_PRINT_ERROR("list_length: not TYPE_PAIR, found %s\n",
+                              type_to_string(obj->type));
+            exit(1);
+        }
+
+        len++;
+        obj = obj->cdr;
+    }
+
+    return len;
+}
+
+
 char * type_to_string(Type type) {
     char *s = NULL;
     switch (type) {

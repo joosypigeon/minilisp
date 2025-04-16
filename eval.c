@@ -7,10 +7,20 @@
 typedef Object *(*SpecialFormHandler)(Env *, Object *);
 
 Object *handle_quote(Env *env, Object *expr) {
+    int length = list_length(expr);
+    if (length != 2) {
+        DEBUG_PRINT_ERROR("Invalid quote form\n");
+        exit(1);
+    }
     return cadr(expr);
 }
 
 Object *handle_define(Env *local, Object *expr) {
+    int length = list_length(expr);
+    if (length != 3) {
+        DEBUG_PRINT_ERROR("Invalid define form\n");
+        exit(1);
+    }
     Object *second = cadr(expr);
     if (second->type == TYPE_SYMBOL) {
         Object *val = eval(local, caddr(expr));
@@ -21,13 +31,13 @@ Object *handle_define(Env *local, Object *expr) {
         DEBUG_PRINT_VERBOSE("found function\n");
         Object *name = car(second);
         if(name->type!=TYPE_SYMBOL){
-            DEBUG_PRINT_ERROR("TYPE ERROR: expected function name\n");
+            DEBUG_PRINT_ERROR("expected function name\n");
             exit(1);
         }
         Object* parameters = cdr(second);
         Object *body = caddr(expr);
         if(body->type!=TYPE_PAIR){
-            DEBUG_PRINT_ERROR("TYPE ERROR: expected function body\n");
+            DEBUG_PRINT_ERROR("expected function body\n");
             exit(1);
         }
         Env *env = push_env(local);
@@ -82,7 +92,7 @@ Object *handle_lambda(Env *local, Object *expr) {
     Env *env = push_env(local);
     Object* params = cadr(expr);
     if(params->type!=TYPE_PAIR && params->type!=TYPE_NIL){
-        DEBUG_PRINT_ERROR("TYPE ERROR: expected parameters\n");
+        DEBUG_PRINT_ERROR("expected parameters\n");
         exit(1);
     }
     Object *body = caddr(expr);
@@ -122,6 +132,13 @@ Object *eval_function(Object* lambda, Object* args){
 
     Object* params = lambda->lambda.params;
     Env *local = lambda->lambda.env;
+
+    int params_length = list_length(params);
+    int args_length = list_length(args);
+    if (params_length != args_length) {
+        DEBUG_PRINT_ERROR("TYPE ERROR: expected %i arguments, got %i\n", params_length, args_length);
+        exit(1);
+    }
     
     while (params != NIL && args != NIL) {
         Object *param = car(params);  // symbol
@@ -181,7 +198,7 @@ Object *eval_list(Env *local, Object *expr) {
         return value;
     }
 
-    printf("Cannot evaluate expression yet: ");
+    DEBUG_PRINT_ERROR("Cannot evaluate expression yet\n");
     print_object(expr);
     printf("\n");
     exit(1);

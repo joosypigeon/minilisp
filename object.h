@@ -50,6 +50,7 @@ Object *car(Object *obj);
 Object *cdr(Object *obj);
 Object *cadr(Object *obj);
 Object *caddr(Object *obj);
+int list_length(Object *obj);
 char *type_to_string(Type type);
 void print_type(Type type);
 void print_object(Object *obj);
