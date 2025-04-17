@@ -54,6 +54,7 @@ int list_length(Object *obj);
 char *type_to_string(Type type);
 void print_type(Type type);
 void print_object(Object *obj);
+char *object_to_string(Object *obj);
 bool object_equal(Object *a, Object *b);
 Object *lisp_eq(Object *a, Object *b);
 Object *lisp_equal(Object *a, Object *b);

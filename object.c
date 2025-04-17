@@ -148,6 +148,85 @@ void print_object(Object *obj) {
     }
 }
 
+#define INITIAL_BUF_SIZE 128
+
+static void append_str(char **buf, size_t *size, size_t *used, const char *str) {
+    size_t len = strlen(str);
+    while (*used + len + 1 > *size) {
+        *size *= 2;
+        *buf = realloc(*buf, *size);
+    }
+    strcpy(*buf + *used, str);
+    *used += len;
+}
+
+static void append_char(char **buf, size_t *size, size_t *used, char c) {
+    if (*used + 2 > *size) {
+        *size *= 2;
+        *buf = realloc(*buf, *size);
+    }
+    (*buf)[(*used)++] = c;
+    (*buf)[*used] = '\0';
+}
+
+static void object_to_string_internal(Object *obj, char **buf, size_t *size, size_t *used) {
+    char tmp[64];
+
+    switch (obj->type) {
+        case TYPE_INT:
+            snprintf(tmp, sizeof(tmp), "%d", obj->int_val);
+            append_str(buf, size, used, tmp);
+            break;
+
+        case TYPE_SYMBOL:
+            append_str(buf, size, used, obj->symbol);
+            break;
+
+        case TYPE_LAMBDA:
+            append_str(buf, size, used, "(lambda ");
+            object_to_string_internal(obj->lambda.params, buf, size, used);
+            append_char(buf, size, used, ' ');
+            object_to_string_internal(obj->lambda.body, buf, size, used);
+            append_char(buf, size, used, ')');
+            break;
+
+        case TYPE_PAIR:
+            append_char(buf, size, used, '(');
+            while (obj->type == TYPE_PAIR) {
+                object_to_string_internal(obj->car, buf, size, used);
+                obj = obj->cdr;
+                if (obj->type == TYPE_PAIR) {
+                    append_char(buf, size, used, ' ');
+                }
+            }
+            if (obj != NIL) {
+                append_str(buf, size, used, " . ");
+                object_to_string_internal(obj, buf, size, used);
+            }
+            append_char(buf, size, used, ')');
+            break;
+
+        case TYPE_NIL:
+            append_str(buf, size, used, "()");
+            break;
+
+        default:
+            append_str(buf, size, used, "<unknown>");
+            break;
+    }
+}
+
+char *object_to_string(Object *obj) {
+    size_t size = INITIAL_BUF_SIZE;
+    size_t used = 0;
+    char *buf = malloc(size);
+    buf[0] = '\0';
+
+    object_to_string_internal(obj, &buf, &size, &used);
+
+    return buf;
+}
+
 bool object_equal(Object *a, Object *b) {
     if (a == b) return true;
 
