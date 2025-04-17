@@ -55,7 +55,9 @@ void tokenize(const char* input) {
                     p++;
                  }
             }
-            tokens[num_tokens++] = make_token(start, p - start);
+            int len = p - start;
+            if (len == 0) continue; // empty token
+            tokens[num_tokens++] = make_token(start, len);
         }
     }
 }
