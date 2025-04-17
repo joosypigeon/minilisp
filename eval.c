@@ -128,7 +128,7 @@ DispatchEntry special_forms[] = {
 Object *eval(Env *local, Object *expr);
 
 Object *eval_function(Object* lambda, Object* args){
-    DEBUG_PRINT_VERBOSE("enter eval_function\n");
+    DEBUG_PRINT_VERBOSE("enter: eval_function: lambda: %s, args: %s\n", object_to_string(lambda), object_to_string(args));
 
     Object* params = lambda->lambda.params;
     Env *local = lambda->lambda.env;
@@ -164,11 +164,12 @@ Object *eval_function(Object* lambda, Object* args){
     Object* body = lambda->lambda.body;
 
     Object* value = eval(local, body);
-
+    DEBUG_PRINT_VERBOSE("leave: eval_function: value: %s\n", object_to_string(value));
     return value;
 }
 
 Object *eval_list(Env *local, Object *expr) {
+    DEBUG_PRINT_VERBOSE("enter: eval_list: local: %p, expr: %s\n", local, object_to_string(expr));
     Object *first = car(expr);
     if (first->type == TYPE_SYMBOL) {
         for (int i = 0; special_forms[i].symbol != NULL; i++) {
@@ -205,13 +206,12 @@ Object *eval_list(Env *local, Object *expr) {
 }
 
 Object *eval(Env *local, Object *expr) {
-    if (expr->type == TYPE_INT || expr->type == TYPE_LAMBDA) {
-        return expr;
-    } else if (expr->type == TYPE_SYMBOL) {
-        return env_lookup(local, expr->symbol);
-    } else if (expr->type == TYPE_PAIR) {
-        return eval_list(local, expr);
-    } else {
-        return expr;
-    }
+    DEBUG_PRINT_VERBOSE("enter: eval: local: %p, expr: %s\n", local, object_to_string(expr));
+    Object *result = expr;
+    if (expr->type == TYPE_SYMBOL)
+        result = env_lookup(local, expr->symbol);
+    if (expr->type == TYPE_PAIR)
+        result = eval_list(local, expr);
+    DEBUG_PRINT_VERBOSE("leave: eval: expr: %s\n", object_to_string(result));
+    return result;
 }

@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
     global = malloc(sizeof(Env));
     global->bindings = NULL;
     global->parent = NULL;
-    
+    DEBUG_PRINT_VERBOSE("global env: %p\n", global);
     char *source = read_file(argv[1]);
     tokenize(source);
     while (current_token < num_tokens) {
