@@ -12,8 +12,12 @@
 #define SYM_QUOTE   "quote"
 #define SYM_EQUAL   "equal?"
 #define SYM_PLUS    "+"
+#define SYM_MINUS   "-"
 #define SYM_TIMES   "*"
 #define SYM_CHAR_QUOTE  '\''
+
+#define SYM_IF      "if"
+
 #define SYM_SPACE  ' '
 
 #endif // SYMBOLS_H

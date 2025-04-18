@@ -15,7 +15,14 @@ bool islist(Object *item){
 Object *make_number(int n) {
     Object *obj = malloc(sizeof(Object));
     obj->type = TYPE_INT;
-    obj->int_val = n;
+    mpz_init_set_si(obj->int_val, n); // initialize and set value
+    return obj;
+}
+
+Object *make_number_from_string(const char *tok) {
+    Object *obj = malloc(sizeof(Object));
+    obj->type = TYPE_INT;
+    mpz_init_set_str(obj->int_val, tok, 10);
     return obj;
 }
 
@@ -49,7 +56,7 @@ Object *cons(Object *car, Object *cdr) {
 
 Object *car(Object *obj) {
     if (obj->type != TYPE_PAIR) {
-        fprintf(stderr, "Error: car called on non-pair\n");
+        DEBUG_PRINT_ERROR("Error: car called on non-pair %s\n", object_to_string(obj));
         exit(1);
     }
     return obj->car;
@@ -67,7 +74,17 @@ Object *cadr(Object *obj) {
     return car(cdr(obj));
 }
 
-Object *caddr(Object *obj) { return car(cdr(cdr(obj))); }
+Object *cddr(Object *obj) {
+    return cdr(cdr(obj));
+}
+
+Object *caddr(Object *obj) {
+    return car(cdr(cdr(obj)));
+}
+
+Object *cadddr(Object *obj) {
+    return car(cdr(cdr(cdr(obj))));
+}
 
 int list_length(Object *obj) {
     if (obj == NIL) return 0;
@@ -114,11 +131,13 @@ void print_type(Type type) {
 void print_object(Object *obj) {
     switch (obj->type) {
         case TYPE_INT:
-            printf("%d", obj->int_val);
+            gmp_printf("%Zd", obj->int_val);  // GMP prints big integers
             break;
+
         case TYPE_SYMBOL:
             printf("%s", obj->symbol);
             break;
+
         case TYPE_LAMBDA:
             printf("(lambda ");
             print_object(obj->lambda.params);
@@ -126,12 +145,14 @@ void print_object(Object *obj) {
             print_object(obj->lambda.body);
             printf(")");
             break;
+
         case TYPE_PAIR:
             printf("(");
             while (obj->type == TYPE_PAIR) {
                 print_object(obj->car);
                 obj = obj->cdr;
-                if (obj->type == TYPE_PAIR) printf(" ");
+                if (obj->type == TYPE_PAIR)
+                    printf(" ");
             }
             if (obj != NIL) {
                 printf(" . ");
@@ -139,14 +160,17 @@ void print_object(Object *obj) {
             }
             printf(")");
             break;
+
         case TYPE_NIL:
             printf("()");
             break;
+
         default:
             printf("<unknown>");
             break;
     }
 }
+
 
 #define INITIAL_BUF_SIZE 128
 
@@ -170,13 +194,13 @@ static void append_char(char **buf, size_t *size, size_t *used, char c) {
 }
 
 static void object_to_string_internal(Object *obj, char **buf, size_t *size, size_t *used) {
-    char tmp[64];
-
     switch (obj->type) {
-        case TYPE_INT:
-            snprintf(tmp, sizeof(tmp), "%d", obj->int_val);
-            append_str(buf, size, used, tmp);
+        case TYPE_INT: {
+            char *str = mpz_get_str(NULL, 10, obj->int_val);  // base 10 string
+            append_str(buf, size, used, str);
+            free(str);  // important: GMP allocates it, you must free it
             break;
+        }
 
         case TYPE_SYMBOL:
             append_str(buf, size, used, obj->symbol);
@@ -195,9 +219,8 @@ static void object_to_string_internal(Object *obj, char **buf, size_t *size, siz
             while (obj->type == TYPE_PAIR) {
                 object_to_string_internal(obj->car, buf, size, used);
                 obj = obj->cdr;
-                if (obj->type == TYPE_PAIR) {
+                if (obj->type == TYPE_PAIR)
                     append_char(buf, size, used, ' ');
-                }
             }
             if (obj != NIL) {
                 append_str(buf, size, used, " . ");
@@ -234,7 +257,7 @@ bool object_equal(Object *a, Object *b) {
 
     switch (a->type) {
         case TYPE_INT:
-            return a->int_val == b->int_val;
+        return mpz_cmp(a->int_val, b->int_val) == 0;
 
         case TYPE_SYMBOL:
             return strcmp(a->symbol, b->symbol) == 0;

@@ -36,6 +36,6 @@ Object *parse_expr() {
     current_token++;
     char *end;
     long val = strtol(tok, &end, 10);
-    if (*end == '\0') return make_number(val);
+    if (*end == '\0') return make_number_from_string(tok);
     return make_symbol(tok);
 }

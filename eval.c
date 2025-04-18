@@ -52,39 +52,82 @@ Object *handle_define(Env *local, Object *expr) {
     exit(1);
 }
 
-Object *handle_plus(Env *local, Object *expr) {
-    int sum = 0;
+Object *handle_plus(Env *env, Object *expr) {
     Object *iter = cdr(expr);
+    Object *result = make_number(0); // start with 0
+
     while (iter != NIL) {
-        Object *item = car(iter);      // extract current item
-        Object *val = eval(local, item);   // evaluate
+        Object *val = eval(env, car(iter));
         if (val->type != TYPE_INT) {
-            DEBUG_PRINT_ERROR("Type error: expected int\n");
+            DEBUG_PRINT_ERROR("+: expected int\n");
             exit(1);
         }
-        sum += val->int_val;
-        iter = cdr(iter);              // move to next
+        mpz_add(result->int_val, result->int_val, val->int_val);
+        iter = cdr(iter);
     }
 
-    Object* result = make_number(sum);
+    return result;
+}
+
+Object *handle_minus(Env *local, Object *expr) {
+    DEBUG_PRINT_VERBOSE("enter: handle_minus: local: %p, expr: %s\n", local, object_to_string(expr));
+    
+    int length = list_length(expr);
+    if (length < 2) {
+        DEBUG_PRINT_ERROR("Invalid minus form %s\n", object_to_string(expr));
+        exit(1);
+    }
+
+    Object *first = eval(local, cadr(expr));
+    if (first->type != TYPE_INT) {
+        DEBUG_PRINT_ERROR("Type error: expected int, found %s\n", object_to_string(first));
+        exit(1);
+    }
+
+    Object *result = make_number(0);  // initialize result
+
+    if (length == 2) {
+        // Unary negation: (- x)
+        mpz_neg(result->int_val, first->int_val);
+        return result;
+    }
+
+    // Start with the first operand
+    mpz_set(result->int_val, first->int_val);
+
+    // Iterate through the rest and subtract each
+    Object *iter = cddr(expr);
+    while (iter != NIL) {
+        Object *item = eval(local, car(iter));
+        if (item->type != TYPE_INT) {
+            DEBUG_PRINT_ERROR("Type error: expected int, got %s\n", object_to_string(item));
+            exit(1);
+        }
+
+        mpz_sub(result->int_val, result->int_val, item->int_val);
+        iter = cdr(iter);
+    }
+
     return result;
 }
 
 Object *handle_times(Env *local, Object *expr) {
-    int sum = 1;
+    DEBUG_PRINT_VERBOSE("enter: handle_times: local: %p, expr: %s\n", local, object_to_string(expr));
+
+    Object *result = make_number(1);  // initialize to 1
+
     Object *iter = cdr(expr);
     while (iter != NIL) {
-        Object *item = car(iter);      // extract current item
-        Object *val = eval(local, item);   // evaluate
-        if (val->type != TYPE_INT) {
-            DEBUG_PRINT_ERROR("Type error: expected int\n");
+        Object *item = eval(local, car(iter));   // evaluate
+        if (item->type != TYPE_INT) {
+            DEBUG_PRINT_ERROR("Type error: expected int, got %s\n", object_to_string(item));
             exit(1);
         }
-        sum *= val->int_val;
-        iter = cdr(iter);              // move to next
+
+        mpz_mul(result->int_val, result->int_val, item->int_val);  // result *= item
+        iter = cdr(iter);
     }
 
-    Object* result = make_number(sum);
     return result;
 }
 
@@ -106,6 +149,26 @@ Object *handle_equal(Env *local, Object *expr){
     return lisp_equal(second, third);
 }
 
+Object *handle_if(Env *env, Object *expr) {
+    int length = list_length(expr);
+    if (length != 4) {
+        DEBUG_PRINT_ERROR("if: wrong number of arguments, expected 3\n");
+        exit(1);
+    }
+
+    Object *condition = cadr(expr);
+    Object *then_branch = caddr(expr);
+    Object *else_branch = cadddr(expr);
+
+    Object *cond_result = eval(env, condition);
+    if (cond_result != NIL) {
+        return eval(env, then_branch);
+    } else {
+        return eval(env, else_branch);
+    }
+}
+
+
 typedef struct {
     const char *symbol;
     SpecialFormHandler handler;
@@ -115,9 +178,11 @@ DispatchEntry special_forms[] = {
     { SYM_QUOTE, handle_quote },
     { SYM_DEFINE, handle_define },
     { SYM_PLUS, handle_plus},
+    { SYM_MINUS, handle_minus},
     { SYM_TIMES, handle_times},
     { SYM_LAMBDA, handle_lambda},
     { SYM_EQUAL, handle_equal},
+    { SYM_IF, handle_if},
     // ... add more here
     { NULL, NULL }
 };
@@ -153,7 +218,7 @@ Object *eval_function(Object* lambda, Object* args){
             exit(1);
         }
 
-        DEBUG_PRINT_VERBOSE("param: %s, arg: %i\n", param->symbol, arg->int_val);
+        DEBUG_PRINT_VERBOSE("param: %s, arg: %s\n", param->symbol, object_to_string(arg));
     
         env_define(local, param->symbol, arg);
     
