@@ -296,6 +296,22 @@ Object *handle_let(Env *env, Object *expr) {
     return eval(extended, body);
 }
 
+Object *handle_list(Env *env, Object *expr) {
+    Object *args = cdr(expr);  // skip the "list" symbol
+    Object *result = NIL;
+    Object **tail = &result;
+
+    while (args != NIL) {
+        Object *item = eval(env, car(args));
+        Object *node = cons(item, NIL);
+        *tail = node;
+        tail = &node->cdr;
+        args = cdr(args);
+    }
+
+    return result;
+}
+
 Object *handle_print(Env *env, Object *expr) {
     int length = list_length(expr);
     if (length != 2) {
@@ -330,7 +346,7 @@ DispatchEntry special_forms[] = {
     { SYM_BEGIN, handle_begin},
     { SYM_LET, handle_let},
     { SYM_PRINT, handle_print},
-    
+    { SYM_LIST, handle_list},
     // ... add more here
     { NULL, NULL }
 };

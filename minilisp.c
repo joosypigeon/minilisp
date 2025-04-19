@@ -28,8 +28,6 @@ int main(int argc, char **argv) {
     while (current_token < num_tokens) {
         Object *expr = parse_expr();
         Object *result = eval(global, expr);
-        print_object(result);
-        printf("\n");
     }
     free(source);
     return 0;

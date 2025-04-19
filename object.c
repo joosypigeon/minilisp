@@ -125,65 +125,19 @@ int list_length(Object *obj) {
 
 
 char * type_to_string(Type type) {
-    char *s = NULL;
     switch (type) {
-        case TYPE_INT:    s = xstrdup(SYM_INT);
-        case TYPE_SYMBOL: s = xstrdup(SYM_SYMBOL);
-        case TYPE_LAMBDA: s = xstrdup(SYM_LAMBDA);
-        case TYPE_PAIR:   s = xstrdup(SYM_PAIR);
-        case TYPE_NIL:    s = xstrdup(SYM_NIL);
-        default:          s = xstrdup(SYM_UNKOWN);
+        case TYPE_INT:    return xstrdup(SYM_INT);
+        case TYPE_SYMBOL: return xstrdup(SYM_SYMBOL);
+        case TYPE_LAMBDA: return xstrdup(SYM_LAMBDA);
+        case TYPE_PAIR:   return xstrdup(SYM_PAIR);
+        case TYPE_NIL:    return xstrdup(SYM_NIL);
+        default:          return xstrdup(SYM_UNKOWN);
     }
-    return s;
 }
 
 void print_type(Type type) {
     printf("%s", type_to_string(type));
 }
-/*
-void print_object(Object *obj) {
-    switch (obj->type) {
-        case TYPE_INT:
-            gmp_printf("%Zd", obj->int_val);  // GMP prints big integers
-            break;
-
-        case TYPE_SYMBOL:
-            printf("%s", obj->symbol);
-            break;
-
-        case TYPE_LAMBDA:
-            printf("(lambda ");
-            print_object(obj->lambda.params);
-            printf(" ");
-            print_object(obj->lambda.body);
-            printf(")");
-            break;
-
-        case TYPE_PAIR:
-            printf("(");
-            while (obj->type == TYPE_PAIR) {
-                print_object(obj->car);
-                obj = obj->cdr;
-                if (obj->type == TYPE_PAIR)
-                    printf(" ");
-            }
-            if (obj != NIL) {
-                printf(" . ");
-                print_object(obj);
-            }
-            printf(")");
-            break;
-
-        case TYPE_NIL:
-            printf("()");
-            break;
-
-        default:
-            printf("<unknown>");
-            break;
-    }
-}
-*/
 
 void print_object(Object *obj) {
     char *str = object_to_string(obj);

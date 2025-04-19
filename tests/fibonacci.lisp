@@ -41,4 +41,4 @@
                   (+ (fib (- n 1)) (fib (- n 2))))))
         (fib-get n))))
 
-(fib 1000)
+(print (fib 1000))

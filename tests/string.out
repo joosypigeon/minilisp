@@ -1,0 +1,5 @@
+"hello world"
+11
+(1 . 2)
+(lambda (x) x)
+"Done!"

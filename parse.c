@@ -1,5 +1,6 @@
 #include "parse.h"
 #include "tokenize.h"
+#include "symbols.h"
 
 
 Object *parse_expr();
@@ -30,7 +31,7 @@ Object *parse_list() {
 
 Object *parse_expr() {
     char *tok = tokens[current_token];
-    
+
     if (strcmp(tok, "'") == 0) {
         current_token++;  // skip the quote token
         Object *quoted = parse_expr();  // parse the thing being quoted
@@ -50,5 +51,6 @@ Object *parse_expr() {
     char *end;
     long val = strtol(tok, &end, 10);
     if (*end == '\0') return make_number_from_string(tok);
+    if (strcmp(tok, SYM_NIL) == 0) return make_nil();
     return make_symbol(tok);
 }

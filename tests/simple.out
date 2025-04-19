@@ -1,0 +1,14 @@
+"pass: literal integer"
+"pass: symbol define"
+"pass: inc"
+"pass: add"
+"pass: closure"
+"pass: shadow"
+"pass: direct lambda"
+"fail: lambda returns lambda"
+"pass: apply returned lambda"
+"pass: redefinition"
+"pass: quote symbol"
+a
+(b c)
+d
