@@ -1,4 +1,4 @@
-### ✅ Full `README.md` (single file, copy-paste ready):
+### ✅ Full `README.md
 
 ```markdown
 # 🧠 minilisp
