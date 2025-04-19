@@ -9,6 +9,7 @@
 *.bin
 main
 a.out
+minilisp
 
 # ─── Core dumps ───
 core
