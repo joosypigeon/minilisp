@@ -47,7 +47,7 @@ Object *env_lookup(Env *local, const char *name) {
 
 Env* push_env(Env *local){
     if(local == NULL){
-        DEBUG_PRINT_ERROR("expected enviroment");
+        DEBUG_PRINT_ERROR("expected enviroment\n");
         exit(1);
     }
     Env* new = malloc(sizeof(Env));

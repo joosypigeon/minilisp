@@ -42,8 +42,8 @@ Object *handle_define(Env *local, Object *expr) {
             DEBUG_PRINT_ERROR("handle_define: expected function body\n");
             exit(1);
         }
-        Env *env = push_env(local);
-        Object* lambda = make_lambda(parameters, body, env);
+
+        Object* lambda = make_lambda(parameters, body, local);
 
         env_define(local, name->symbol, lambda);
 
@@ -335,9 +335,6 @@ DispatchEntry special_forms[] = {
     { NULL, NULL }
 };
 
-
-
-
 Object *eval(Env *local, Object *expr);
 
 Object *eval_function(Env *env, Object* lambda, Object* args){
@@ -345,7 +342,8 @@ Object *eval_function(Env *env, Object* lambda, Object* args){
 
     Object* params = lambda->lambda.params;
 
-    Env *local = push_env(env);
+    //Env *local = push_env(env);
+    Env *local = push_env(lambda->lambda.env);
 
     int params_length = list_length(params);
     int args_length = list_length(args);
@@ -356,7 +354,7 @@ Object *eval_function(Env *env, Object* lambda, Object* args){
     
     while (params != NIL && args != NIL) {
         Object *param = car(params);  // symbol
-        Object *arg = eval(local, car(args));      // value
+        Object *arg = eval(env, car(args));      // value
     
         if (param->type != TYPE_SYMBOL) {
             DEBUG_PRINT_ERROR("TYPE ERROR: expected a symbol\n"); 
@@ -393,6 +391,7 @@ Object *eval_list(Env *local, Object *expr) {
             DEBUG_PRINT_ERROR("TYPE ERROR: expected lambda expression\n");
             exit(1);
         }
+        DEBUG_PRINT_VERBOSE("eval_list: found lambda object\n");
         Object* arg_list = cdr(expr);
         Object* value = eval_function(local, lambda, arg_list);
         return value;
