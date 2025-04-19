@@ -263,6 +263,20 @@ Object *handle_cdr(Env *env, Object *expr) {
     return result;
 }
 
+Object *handle_begin(Env *env, Object *expr) {
+    DEBUG_PRINT_VERBOSE("enter: begin: expr = %s\n", object_to_string(expr));
+
+    Object *body = cdr(expr);  // skip the symbol "begin"
+    Object *result = NIL;
+
+    while (body != NIL) {
+        result = eval(env, car(body));
+        body = cdr(body);
+    }
+    DEBUG_PRINT_VERBOSE("leave: begin: result = %s\n", object_to_string(result));
+    return result;  // return the last result
+}
+
 typedef struct {
     const char *symbol;
     SpecialFormHandler handler;
@@ -281,6 +295,7 @@ DispatchEntry special_forms[] = {
     { SYM_CONS, handle_cons},
     { SYM_CAR, handle_car},
     { SYM_CDR, handle_cdr},
+    { SYM_BEGIN, handle_begin},
     // ... add more here
     { NULL, NULL }
 };
@@ -294,7 +309,6 @@ Object *eval_function(Env *env, Object* lambda, Object* args){
     DEBUG_PRINT_VERBOSE("enter: eval_function: lambda: %s, args: %s\n", object_to_string(lambda), object_to_string(args));
 
     Object* params = lambda->lambda.params;
-    //Env *local = push_env(lambda->lambda.env);
 
     Env *local = push_env(env);
 
@@ -313,12 +327,7 @@ Object *eval_function(Env *env, Object* lambda, Object* args){
             DEBUG_PRINT_ERROR("TYPE ERROR: expected a symbol\n"); 
             exit(1);
         }
-        /*
-        if (arg->type != TYPE_INT) {
-            DEBUG_PRINT_ERROR("TYPE ERROR: expected an integer\n"); 
-            exit(1);
-        }
-*/
+    
         DEBUG_PRINT_VERBOSE("eval_function: param: %s, arg: %s\n", param->symbol, object_to_string(arg));
     
         env_define(local, param->symbol, arg);

@@ -15,6 +15,7 @@
 #define SYM_CONS    "cons"
 #define SYM_CAR     "car"
 #define SYM_CDR     "cdr"
+#define SYM_BEGIN   "begin"
 #define SYM_PLUS    "+"
 #define SYM_MINUS   "-"
 #define SYM_TIMES   "*"

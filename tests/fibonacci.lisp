@@ -25,9 +25,9 @@
 ;; 5. Put in cache using set!
 (define fib-put!
   (lambda (n result)
-    ((lambda (ignored)
-       result)
-     (set! fib-cache (cons (cons n result) fib-cache)))))
+    (begin
+      (set! fib-cache (cons (cons n result) fib-cache))
+      result)))
 
 ;; 6. Memoized Fibonacci
 (define fib
@@ -41,4 +41,4 @@
                   (+ (fib (- n 1)) (fib (- n 2))))))
         (fib-get n))))
 
-(fib 5000)
+(fib 1000)
