@@ -60,23 +60,14 @@ void tokenize(const char* input) {
         const char* start = p;
         while (*p && !isspace(*p) && *p != '(' && *p != ')' && *p != ';' && *p != SYM_CHAR_QUOTE) p++;
         if (*p == SYM_CHAR_QUOTE) {
-                if(*(p+1) != '\0' && !isspace(*(p+1))) {
-                tokens[num_tokens++] = make_token("(", 1);
-                tokens[num_tokens++] = xstrdup("quote");
-                p++;
-                start=p;
-                while (*p && !isspace(*p) && *p != '(' && *p != ')' && *p != ';') p++;
-                tokens[num_tokens++] = make_token(start, p - start); 
-                tokens[num_tokens++] = make_token(")", 1);
-                continue;
-                } else {
-                p++;
-                }
+            tokens[num_tokens++] = make_token("'", 1);
+            p++;
+            continue;
         }
         int len = p - start;
         if (len == 0) continue; // empty token
         tokens[num_tokens++] = make_token(start, len);
-}
+    }
 }
 
 // ───── File Reader ─────

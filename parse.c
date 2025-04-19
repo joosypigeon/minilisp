@@ -30,6 +30,13 @@ Object *parse_list() {
 
 Object *parse_expr() {
     char *tok = tokens[current_token];
+    
+    if (strcmp(tok, "'") == 0) {
+        current_token++;  // skip the quote token
+        Object *quoted = parse_expr();  // parse the thing being quoted
+        return cons(make_symbol("quote"), cons(quoted, NIL));
+    }
+
     if (strcmp(tok, "(") == 0) {
         return parse_list();
     } 
