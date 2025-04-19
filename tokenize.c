@@ -7,6 +7,7 @@
 #include "util.h"
 #include "tokenize.h"
 #include "symbols.h"
+#include "debug.h"
 
 #define MAX_TOKENS 1024
 char *tokens[MAX_TOKENS];
@@ -34,32 +35,48 @@ void tokenize(const char* input) {
 
     while (*p) {
         skip_whitespace_and_comments(&p);
+
         if (*p == '\0') break;
 
         if (*p == '(' || *p == ')') {
             tokens[num_tokens++] = make_token(p++, 1);
-        } else {
-            const char* start = p;
-            while (*p && !isspace(*p) && *p != '(' && *p != ')' && *p != ';' && *p != SYM_CHAR_QUOTE) p++;
-            if (*p == SYM_CHAR_QUOTE) {
-                 if(*(p+1) != '\0' && !isspace(*(p+1))) {
-                    tokens[num_tokens++] = make_token("(", 1);
-                    tokens[num_tokens++] = xstrdup("quote");
-                    p++;
-                    start=p;
-                    while (*p && !isspace(*p) && *p != '(' && *p != ')' && *p != ';') p++;
-                    tokens[num_tokens++] = make_token(start, p - start); 
-                    tokens[num_tokens++] = make_token(")", 1);
-                    continue;
-                 } else {
-                    p++;
-                 }
-            }
-            int len = p - start;
-            if (len == 0) continue; // empty token
-            tokens[num_tokens++] = make_token(start, len);
+            continue;
         }
-    }
+
+        if (*p == '"') {
+            const char* start = p;
+            p++;  // skip opening quote
+            while (*p && *p != '"') p++;
+            if (*p == '\0') {
+                DEBUG_PRINT_ERROR("tokenize: unterminated string\n");
+                exit(1);
+            }
+            int len = p - start + 1; // include closing quote
+            tokens[num_tokens++] = make_token(start, len);
+            p++;  // skip closing quote
+            continue;
+        }
+
+        const char* start = p;
+        while (*p && !isspace(*p) && *p != '(' && *p != ')' && *p != ';' && *p != SYM_CHAR_QUOTE) p++;
+        if (*p == SYM_CHAR_QUOTE) {
+                if(*(p+1) != '\0' && !isspace(*(p+1))) {
+                tokens[num_tokens++] = make_token("(", 1);
+                tokens[num_tokens++] = xstrdup("quote");
+                p++;
+                start=p;
+                while (*p && !isspace(*p) && *p != '(' && *p != ')' && *p != ';') p++;
+                tokens[num_tokens++] = make_token(start, p - start); 
+                tokens[num_tokens++] = make_token(")", 1);
+                continue;
+                } else {
+                p++;
+                }
+        }
+        int len = p - start;
+        if (len == 0) continue; // empty token
+        tokens[num_tokens++] = make_token(start, len);
+}
 }
 
 // ───── File Reader ─────
