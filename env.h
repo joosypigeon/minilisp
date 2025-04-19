@@ -17,6 +17,7 @@ typedef struct Env {
 extern Env *global;
 
 void env_define(Env *local, const char *name, Object *value);
+bool set(Env *local, const char *name, Object *value);
 Object *env_lookup(Env *local, const char *name);
 Env* push_env(Env *local);
 Env* pop_env(Env *local);

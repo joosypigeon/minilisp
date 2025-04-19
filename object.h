@@ -54,6 +54,7 @@ Object *cddr(Object *obj);
 Object *cadr(Object *obj);
 Object *caddr(Object *obj);
 Object *cadddr(Object *obj);
+Object *cons(Object *car, Object *cdr);
 int list_length(Object *obj);
 char *type_to_string(Type type);
 void print_type(Type type);

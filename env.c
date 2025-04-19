@@ -1,5 +1,6 @@
 #include "env.h"
 #include "debug.h"
+#include "gmp.h"
 
 Env *global = NULL;
 
@@ -10,10 +11,29 @@ void env_define(Env *local, const char *name, Object *value) {
     b->next = local->bindings;
     local->bindings = b;
     DEBUG_PRINT_VERBOSE("env_define: env: %p, %s = %s\n", local, name, object_to_string(value));
+    if (mpz_cmp_ui(value->int_val, 0) < 0) {
+        DEBUG_PRINT_ERROR("Invalid number: %s\n", object_to_string(value));
+        exit(1);
+    }
+}
+
+bool set(Env *local, const char *name, Object *value) {
+    DEBUG_PRINT_VERBOSE("set: env: %p, %s = %s\n", local, name, object_to_string(value));
+    for (Env* level = local; level; level = level->parent) {
+        for (Binding *b = level->bindings; b != NULL; b = b->next) {
+            if (strcmp(b->name, name) == 0) {
+                b->value = value;
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 Object *env_lookup(Env *local, const char *name) {
+    DEBUG_PRINT_VERBOSE("enter: env_lookup: env: %p, %s\n", local, name);
     for (Env* level = local; level; level = level->parent) {
+        DEBUG_PRINT_VERBOSE("env_lookup: level: %p\n", level);
         for (Binding *b = level->bindings; b != NULL; b = b->next) {
             if (strcmp(b->name, name) == 0) {
                 DEBUG_PRINT_VERBOSE("env_lookup: env: %p, %s = %s\n", level, name, object_to_string(b->value));
@@ -21,7 +41,7 @@ Object *env_lookup(Env *local, const char *name) {
             }
         }
     }
-    fprintf(stderr, "Unbound symbol: %s\n", name);
+    DEBUG_PRINT_ERROR("env_lookup: env: %p, %s not found\n", local, name);
     exit(1);
 }
 

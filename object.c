@@ -23,6 +23,10 @@ Object *make_number_from_string(const char *tok) {
     Object *obj = malloc(sizeof(Object));
     obj->type = TYPE_INT;
     mpz_init_set_str(obj->int_val, tok, 10);
+    if (mpz_cmp_ui(obj->int_val, 0) < 0) {
+        DEBUG_PRINT_ERROR("Invalid number: %s\n", tok);
+        exit(1);
+    }
     return obj;
 }
 
@@ -34,6 +38,8 @@ Object *make_symbol(const char *name) {
 }
 
 Object *make_lambda(Object *params, Object *body, Env *env) {
+    DEBUG_PRINT_VERBOSE("make_lambda: env: %p, params: %s, body: %s\n",
+        env, object_to_string(params), object_to_string(body));
     Object *obj = malloc(sizeof(Object));
     obj->type = TYPE_LAMBDA;
     obj->lambda.params = params;
@@ -230,7 +236,7 @@ static void object_to_string_internal(Object *obj, char **buf, size_t *size, siz
             break;
 
         case TYPE_NIL:
-            append_str(buf, size, used, "()");
+            append_str(buf, size, used, "NIL");
             break;
 
         default:
@@ -251,12 +257,17 @@ char *object_to_string(Object *obj) {
 }
 
 bool object_equal(Object *a, Object *b) {
+    DEBUG_PRINT_VERBOSE("object_equal: a: %s, b: %s\n",
+        object_to_string(a), object_to_string(b));
     if (a == b) return true;
 
     if (a->type != b->type) return false;
 
     switch (a->type) {
         case TYPE_INT:
+        if (mpz_cmp(a->int_val, b->int_val) == 0) {
+            DEBUG_PRINT_VERBOSE("object_equal: int equal\n");
+        }
         return mpz_cmp(a->int_val, b->int_val) == 0;
 
         case TYPE_SYMBOL:
@@ -275,9 +286,13 @@ bool object_equal(Object *a, Object *b) {
 }
 
 Object *lisp_eq(Object *a, Object *b) {
+    DEBUG_PRINT_VERBOSE("lisp_eq: a: %s, b: %s\n",
+        object_to_string(a), object_to_string(b));
     return (a == b) ? TRUE : NIL;
 }
 
 Object *lisp_equal(Object *a, Object *b) {
+    DEBUG_PRINT_VERBOSE("lisp_equal: a: %s, b: %s\n",
+        object_to_string(a), object_to_string(b));
     return object_equal(a, b) ? TRUE : NIL;
 }
