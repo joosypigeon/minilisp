@@ -264,7 +264,7 @@ Object *handle_cdr(Env *env, Object *expr) {
 }
 
 Object *handle_begin(Env *env, Object *expr) {
-    DEBUG_PRINT_VERBOSE("enter: begin: expr = %s\n", object_to_string(expr));
+    DEBUG_PRINT_VERBOSE("enter: begin: env: %p, expr = %s\n", env, object_to_string(expr));
 
     Object *body = cdr(expr);  // skip the symbol "begin"
     Object *result = NIL;
@@ -275,6 +275,38 @@ Object *handle_begin(Env *env, Object *expr) {
     }
     DEBUG_PRINT_VERBOSE("leave: begin: result = %s\n", object_to_string(result));
     return result;  // return the last result
+}
+
+Object *handle_let(Env *env, Object *expr) {
+    // (let ((x 1) (y 2)) body)
+    Object *bindings = cadr(expr);
+    Object *body = caddr(expr);
+
+    Env *extended = push_env(env);
+
+    while (bindings != NIL) {
+        Object *pair = car(bindings);      // (x 1)
+        Object *name = car(pair);          // x
+        Object *value_expr = cadr(pair);   // 1
+        Object *value = eval(env, value_expr);  // evaluate in original env
+        env_define(extended, name->symbol, value);
+        bindings = cdr(bindings);
+    }
+
+    return eval(extended, body);
+}
+
+Object *handle_print(Env *env, Object *expr) {
+    int length = list_length(expr);
+    if (length != 2) {
+        DEBUG_PRINT_ERROR("print: expected 1 argument, got %d\n", length - 1);
+        exit(1);
+    }
+
+    Object *value = eval(env, cadr(expr));
+    print_object(value);
+    printf("\n");  // newline after print
+    return value;  // return the printed value (common in Lisp)
 }
 
 typedef struct {
@@ -296,6 +328,9 @@ DispatchEntry special_forms[] = {
     { SYM_CAR, handle_car},
     { SYM_CDR, handle_cdr},
     { SYM_BEGIN, handle_begin},
+    { SYM_LET, handle_let},
+    { SYM_PRINT, handle_print},
+    
     // ... add more here
     { NULL, NULL }
 };

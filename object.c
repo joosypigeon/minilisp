@@ -37,6 +37,13 @@ Object *make_symbol(const char *name) {
     return obj;
 }
 
+Object *make_string(const char *value) {
+    Object *obj = malloc(sizeof(Object));
+    obj->type = TYPE_STRING;
+    obj->str_val = xstrdup(value);  // use your safe strdup
+    return obj;
+}
+
 Object *make_lambda(Object *params, Object *body, Env *env) {
     DEBUG_PRINT_VERBOSE("make_lambda: env: %p, params: %s, body: %s\n",
         env, object_to_string(params), object_to_string(body));
@@ -133,7 +140,7 @@ char * type_to_string(Type type) {
 void print_type(Type type) {
     printf("%s", type_to_string(type));
 }
-
+/*
 void print_object(Object *obj) {
     switch (obj->type) {
         case TYPE_INT:
@@ -176,7 +183,13 @@ void print_object(Object *obj) {
             break;
     }
 }
+*/
 
+void print_object(Object *obj) {
+    char *str = object_to_string(obj);
+    printf("%s", str);
+    free(str);
+}
 
 #define INITIAL_BUF_SIZE 128
 
@@ -210,6 +223,12 @@ static void object_to_string_internal(Object *obj, char **buf, size_t *size, siz
 
         case TYPE_SYMBOL:
             append_str(buf, size, used, obj->symbol);
+            break;
+
+        case TYPE_STRING:
+            append_char(buf, size, used, '"');
+            append_str(buf, size, used, obj->str_val);
+            append_char(buf, size, used, '"');
             break;
 
         case TYPE_LAMBDA:
@@ -272,6 +291,9 @@ bool object_equal(Object *a, Object *b) {
 
         case TYPE_SYMBOL:
             return strcmp(a->symbol, b->symbol) == 0;
+
+        case TYPE_STRING:
+            return strcmp(a->str_val, b->str_val) == 0;
 
         case TYPE_NIL:
             return true;

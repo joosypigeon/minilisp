@@ -13,7 +13,8 @@ typedef enum {
     TYPE_SYMBOL,
     TYPE_LAMBDA,
     TYPE_PAIR,
-    TYPE_NIL
+    TYPE_NIL,
+    TYPE_STRING
 } Type;
 
 typedef struct Object Object;
@@ -28,7 +29,7 @@ struct Object {
     union {
         mpz_t int_val;
         char *symbol;
-
+        char *str_val; // for TYPE_STRING
         struct {
             Object *params;
             Object *body;
@@ -45,6 +46,7 @@ struct Object {
 Object *make_number(int value);
 Object *make_number_from_string(const char *tok);
 Object *make_symbol(const char *name);
+Object *make_string(const char *value);
 Object *make_lambda(Object *params, Object *body, Env *env);
 Object *make_nil(void);
 Object *cons(Object *car, Object *cdr);

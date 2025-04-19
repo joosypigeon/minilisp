@@ -34,6 +34,12 @@ Object *parse_expr() {
         return parse_list();
     } 
     current_token++;
+
+    if (tok[0] == '"' && tok[strlen(tok) - 1] == '"') {
+        tok[strlen(tok) - 1] = '\0';  // remove trailing "
+        return make_string(tok + 1);  // skip initial "
+    }
+
     char *end;
     long val = strtol(tok, &end, 10);
     if (*end == '\0') return make_number_from_string(tok);
