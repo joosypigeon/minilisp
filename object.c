@@ -59,6 +59,10 @@ Object *make_nil(void) {
     return NIL;
 }
 
+Object *make_true(void) {
+    return TRUE;
+}
+
 Object *cons(Object *car, Object *cdr) {
     Object *obj = malloc(sizeof(Object));
     obj->type = TYPE_PAIR;

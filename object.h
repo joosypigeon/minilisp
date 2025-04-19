@@ -49,6 +49,7 @@ Object *make_symbol(const char *name);
 Object *make_string(const char *value);
 Object *make_lambda(Object *params, Object *body, Env *env);
 Object *make_nil(void);
+Object *make_true(void);
 Object *cons(Object *car, Object *cdr);
 Object *car(Object *obj);
 Object *cdr(Object *obj);

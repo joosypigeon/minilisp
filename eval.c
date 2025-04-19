@@ -325,6 +325,20 @@ Object *handle_print(Env *env, Object *expr) {
     return value;  // return the printed value (common in Lisp)
 }
 
+Object *handle_atom(Env *env, Object *expr) {
+    if (list_length(expr) != 2) {
+        DEBUG_PRINT_ERROR("atom?: expected 1 argument\n");
+        exit(1);
+    }
+
+    Object *val = eval(env, cadr(expr));
+    if (val->type == TYPE_PAIR) {
+        return NIL;
+    } else {
+        return make_true();
+    }
+}
+
 typedef struct {
     const char *symbol;
     SpecialFormHandler handler;
@@ -347,6 +361,7 @@ DispatchEntry special_forms[] = {
     { SYM_LET, handle_let},
     { SYM_PRINT, handle_print},
     { SYM_LIST, handle_list},
+    { SYM_ATOM, handle_atom},
     // ... add more here
     { NULL, NULL }
 };

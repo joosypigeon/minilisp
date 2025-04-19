@@ -11,6 +11,7 @@
 #define SYM_DEFINE  "define"
 #define SYM_QUOTE   "quote"
 #define SYM_EQUAL   "equal?"
+#define SYM_ATOM    "atom?"
 #define SYM_SET     "set!"
 #define SYM_LET     "let"
 #define SYM_PRINT   "print"
