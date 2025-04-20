@@ -1,0 +1,8 @@
+"pass: atom? number"
+"pass: atom? symbol"
+"pass: atom? string"
+"pass: atom? lambda"
+"pass: atom? nil"
+"pass: atom? cons"
+"pass: atom? list"
+"pass: atom? nested list"
