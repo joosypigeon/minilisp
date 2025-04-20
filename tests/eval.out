@@ -1,0 +1,24 @@
+42
+42
+eval.c:474: Cannot evaluate expression.
+
+eval.c:414: TYPE ERROR: expected 1 arguments, got 0
+
+eval.c:414: TYPE ERROR: expected 1 arguments, got 2
+
+eval.c:111: +: expected int
+
+eval.c:172: Type error: expected int, got "hello"
+
+eval.c:244: car: expected pair
+
+eval.c:260: cdr: expected pair
+
+42
+#t
+eval.c:54: Invalid define form
+
+eval.c:37: handle_define: expected function name
+
+env.c:42: env_lookup: unknown-variable not found
+

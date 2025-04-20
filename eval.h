@@ -5,6 +5,6 @@
 #include "env.h"
 
 
-Object *eval(Env *local, Object *expr);
+Object *safe_eval(Env *local, Object *expr);
 
 #endif // EVAL_H

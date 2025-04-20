@@ -11,7 +11,10 @@
 #include "symbols.h"
 #include "parse.h"
 #include "eval.h"
+#include "error.h"
 
+jmp_buf eval_env;
+Object *current_error = NULL;
 
 #define BUFFER_SIZE 1024
 
@@ -31,9 +34,12 @@ void repl() {
 
         while (current_token < num_tokens) {
             Object *expr = parse_expr();
-            Object *result = eval(global, expr);
-            print_object(result);
-            printf("\n");
+            Object *result = safe_eval(global, expr);
+            if (result->type == TYPE_ERROR) {
+                printf("%s\n", result->error_msg);
+                free(result->error_msg);
+                free(result);
+            }
         }
     }
 
@@ -47,9 +53,12 @@ void batch (char *filename) {
 
     while (current_token < num_tokens) {
         Object *expr = parse_expr();
-        Object *result = eval(global, expr);
-        print_object(result);
-        printf("\n");
+        Object *result = safe_eval(global, expr);
+        if (result->type == TYPE_ERROR) {
+            printf("%s\n", result->error_msg);
+            free(result->error_msg);
+            free(result);
+        }
     }
     free(source);
 }

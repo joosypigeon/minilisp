@@ -1,8 +1,9 @@
 #include "eval.h"
 #include "debug.h"
 #include "symbols.h"
+#include "error.h"
 
-
+Object *eval(Env *local, Object *expr);
 
 typedef Object *(*SpecialFormHandler)(Env *, Object *);
 
@@ -10,7 +11,7 @@ Object *handle_quote(Env *env, Object *expr) {
     DEBUG_PRINT_VERBOSE("enter: handle_quote: env: %p, expr: %s\n", env, object_to_string(expr));
     int length = list_length(expr);
     if (length != 2) {
-        DEBUG_PRINT_ERROR("Invalid quote form\n");
+        RAISE_ERROR("Invalid quote form\n");
         exit(1);
     }
     return cadr(expr);
@@ -20,7 +21,7 @@ Object *handle_define(Env *local, Object *expr) {
     DEBUG_PRINT_VERBOSE("enter: handle_define: local: %p, expr: %s\n", local, object_to_string(expr));
     int length = list_length(expr);
     if (length != 3) {
-        DEBUG_PRINT_ERROR("Invalid define form\n");
+        RAISE_ERROR("Invalid define form\n");
         exit(1);
     }
     Object *second = cadr(expr);
@@ -33,13 +34,13 @@ Object *handle_define(Env *local, Object *expr) {
         DEBUG_PRINT_VERBOSE("found function\n");
         Object *name = car(second);
         if(name->type!=TYPE_SYMBOL){
-            DEBUG_PRINT_ERROR("handle_define: expected function name\n");
+            RAISE_ERROR("handle_define: expected function name\n");
             exit(1);
         }
         Object* parameters = cdr(second);
         Object *body = caddr(expr);
         if(body->type!=TYPE_PAIR){
-            DEBUG_PRINT_ERROR("handle_define: expected function body\n");
+            RAISE_ERROR("handle_define: expected function body\n");
             exit(1);
         }
 
@@ -50,7 +51,7 @@ Object *handle_define(Env *local, Object *expr) {
         return lambda;
     }
 
-    DEBUG_PRINT_ERROR("Invalid define form\n");
+    RAISE_ERROR("Invalid define form\n");
     exit(1);
 }
 
@@ -58,7 +59,7 @@ Object *handle_set(Env *local, Object *expr) {
     DEBUG_PRINT_VERBOSE("enter: handle_set: local: %p, expr: %s\n", local, object_to_string(expr));
     int length = list_length(expr);
     if (length != 3) {
-        DEBUG_PRINT_ERROR("Invalid define form\n");
+        RAISE_ERROR("Invalid define form\n");
         exit(1);
     }
     Object *second = cadr(expr);
@@ -66,7 +67,7 @@ Object *handle_set(Env *local, Object *expr) {
         Object *val = eval(local, caddr(expr));
         bool found = set(local, second->symbol, val);
         if (!found) {
-            DEBUG_PRINT_ERROR("handle_set: %s not found\n", second->symbol);
+            RAISE_ERROR("handle_set: %s not found\n", second->symbol);
             exit(1);
         }
         return val;
@@ -75,13 +76,13 @@ Object *handle_set(Env *local, Object *expr) {
         DEBUG_PRINT_VERBOSE("found function\n");
         Object *name = car(second);
         if(name->type!=TYPE_SYMBOL){
-            DEBUG_PRINT_ERROR("handle_set: expected function name\n");
+            RAISE_ERROR("handle_set: expected function name\n");
             exit(1);
         }
         Object* parameters = cdr(second);
         Object *body = caddr(expr);
         if(body->type!=TYPE_PAIR){
-            DEBUG_PRINT_ERROR("handle_set: expected function body\n");
+            RAISE_ERROR("handle_set: expected function body\n");
             exit(1);
         }
         Env *env = push_env(local);
@@ -89,14 +90,14 @@ Object *handle_set(Env *local, Object *expr) {
 
         bool found = set(local, second->symbol, lambda);
         if (!found) {
-            DEBUG_PRINT_ERROR("handle_set: %s not found\n", second->symbol);
+            RAISE_ERROR("handle_set: %s not found\n", second->symbol);
             exit(1);
         }
 
         return lambda;
     }
 
-    DEBUG_PRINT_ERROR("Invalid define form\n");
+    RAISE_ERROR("Invalid define form\n");
     exit(1);
 }
 
@@ -107,7 +108,7 @@ Object *handle_plus(Env *env, Object *expr) {
     while (iter != NIL) {
         Object *val = eval(env, car(iter));
         if (val->type != TYPE_INT) {
-            DEBUG_PRINT_ERROR("+: expected int\n");
+            RAISE_ERROR("+: expected int\n");
             exit(1);
         }
         mpz_add(result->int_val, result->int_val, val->int_val);
@@ -122,13 +123,13 @@ Object *handle_minus(Env *local, Object *expr) {
     
     int length = list_length(expr);
     if (length < 2) {
-        DEBUG_PRINT_ERROR("Invalid minus form %s\n", object_to_string(expr));
+        RAISE_ERROR("Invalid minus form %s\n", object_to_string(expr));
         exit(1);
     }
 
     Object *first = eval(local, cadr(expr));
     if (first->type != TYPE_INT) {
-        DEBUG_PRINT_ERROR("Type error: expected int, found %s\n", object_to_string(first));
+        RAISE_ERROR("Type error: expected int, found %s\n", object_to_string(first));
         exit(1);
     }
 
@@ -148,7 +149,7 @@ Object *handle_minus(Env *local, Object *expr) {
     while (iter != NIL) {
         Object *item = eval(local, car(iter));
         if (item->type != TYPE_INT) {
-            DEBUG_PRINT_ERROR("Type error: expected int, got %s\n", object_to_string(item));
+            RAISE_ERROR("Type error: expected int, got %s\n", object_to_string(item));
             exit(1);
         }
 
@@ -168,7 +169,7 @@ Object *handle_times(Env *local, Object *expr) {
     while (iter != NIL) {
         Object *item = eval(local, car(iter));   // evaluate
         if (item->type != TYPE_INT) {
-            DEBUG_PRINT_ERROR("Type error: expected int, got %s\n", object_to_string(item));
+            RAISE_ERROR("Type error: expected int, got %s\n", object_to_string(item));
             exit(1);
         }
 
@@ -183,7 +184,7 @@ Object *handle_lambda(Env *local, Object *expr) {
     Env *env = push_env(local);
     Object* params = cadr(expr);
     if(params->type!=TYPE_PAIR && params->type!=TYPE_NIL){
-        DEBUG_PRINT_ERROR("expected parameters\n");
+        RAISE_ERROR("expected parameters\n");
         exit(1);
     }
     Object *body = caddr(expr);
@@ -201,7 +202,7 @@ Object *handle_equal(Env *local, Object *expr){
 Object *handle_if(Env *env, Object *expr) {
     int length = list_length(expr);
     if (length != 4) {
-        DEBUG_PRINT_ERROR("if: wrong number of arguments, expected 3\n");
+        RAISE_ERROR("if: wrong number of arguments, expected 3\n");
         exit(1);
     }
 
@@ -221,7 +222,7 @@ Object *handle_cons(Env *env, Object *expr) {
     DEBUG_PRINT_VERBOSE("enter: handle_cons: env: %p, expr: %s\n", env, object_to_string(expr));
     int length = list_length(expr);
     if (length != 3) {
-        DEBUG_PRINT_ERROR("Invalid cons form\n");
+        RAISE_ERROR("Invalid cons form\n");
         exit(1);
     }
     Object *first = eval(env, cadr(expr));
@@ -234,13 +235,13 @@ Object *handle_car(Env *env, Object *expr) {
     DEBUG_PRINT_VERBOSE("enter: handle_car: env: %p, expr: %s\n", env, object_to_string(expr));
     int length = list_length(expr);
     if (length != 2) {
-        DEBUG_PRINT_ERROR("Invalid car form\n");
+        RAISE_ERROR("Invalid car form\n");
         exit(1);
     }
     Object *first = eval(env, cadr(expr));
 
     if (first->type != TYPE_PAIR) {
-        DEBUG_PRINT_ERROR("car: expected pair\n");
+        RAISE_ERROR("car: expected pair\n");
         exit(1);
     }
     Object *result = first->car;
@@ -251,12 +252,12 @@ Object *handle_cdr(Env *env, Object *expr) {
     DEBUG_PRINT_VERBOSE("enter: handle_cdr: env: %p, expr: %s\n", env, object_to_string(expr));
     int length = list_length(expr);
     if (length != 2) {
-        DEBUG_PRINT_ERROR("Invalid cdr form\n");
+        RAISE_ERROR("Invalid cdr form\n");
         exit(1);
     }
     Object *first = eval(env, cadr(expr));
     if (first->type != TYPE_PAIR) {
-        DEBUG_PRINT_ERROR("cdr: expected pair\n");
+        RAISE_ERROR("cdr: expected pair\n");
         exit(1);
     }
     Object *result = first->cdr;
@@ -315,7 +316,7 @@ Object *handle_list(Env *env, Object *expr) {
 Object *handle_print(Env *env, Object *expr) {
     int length = list_length(expr);
     if (length != 2) {
-        DEBUG_PRINT_ERROR("print: expected 1 argument, got %d\n", length - 1);
+        RAISE_ERROR("print: expected 1 argument, got %d\n", length - 1);
         exit(1);
     }
 
@@ -327,7 +328,7 @@ Object *handle_print(Env *env, Object *expr) {
 
 Object *handle_atom(Env *env, Object *expr) {
     if (list_length(expr) != 2) {
-        DEBUG_PRINT_ERROR("atom?: expected 1 argument\n");
+        RAISE_ERROR("atom?: expected 1 argument\n");
         exit(1);
     }
 
@@ -344,7 +345,7 @@ Object *handle_cond(Env *env, Object *args) {
     for (Object *clause = cdr(args); !is_nil(clause); clause = cdr(clause)) {
         Object *pair = car(clause);
         if (!is_pair(pair)) {
-            DEBUG_PRINT_ERROR("handle_cond: expected a pair\n");
+            RAISE_ERROR("handle_cond: expected a pair\n");
             exit(1);
         }
 
@@ -410,7 +411,7 @@ Object *eval_function(Env *env, Object* lambda, Object* args){
     int params_length = list_length(params);
     int args_length = list_length(args);
     if (params_length != args_length) {
-        DEBUG_PRINT_ERROR("TYPE ERROR: expected %i arguments, got %i\n", params_length, args_length);
+        RAISE_ERROR("TYPE ERROR: expected %i arguments, got %i\n", params_length, args_length);
         exit(1);
     }
     
@@ -419,7 +420,7 @@ Object *eval_function(Env *env, Object* lambda, Object* args){
         Object *arg = eval(env, car(args));      // value
     
         if (param->type != TYPE_SYMBOL) {
-            DEBUG_PRINT_ERROR("TYPE ERROR: expected a symbol\n"); 
+            RAISE_ERROR("TYPE ERROR: expected a symbol\n"); 
             exit(1);
         }
     
@@ -450,7 +451,7 @@ Object *eval_list(Env *local, Object *expr) {
         /* expect function call*/
         Object *lambda = env_lookup(local, first->symbol);
         if(lambda->type!=TYPE_LAMBDA){
-            DEBUG_PRINT_ERROR("TYPE ERROR: expected lambda expression\n");
+            RAISE_ERROR("TYPE ERROR: expected lambda expression\n");
             exit(1);
         }
         DEBUG_PRINT_VERBOSE("eval_list: found lambda object\n");
@@ -462,7 +463,7 @@ Object *eval_list(Env *local, Object *expr) {
     if (first->type == TYPE_PAIR) {
         Object* lambda = eval(local, first);
         if(lambda->type!=TYPE_LAMBDA) {
-            DEBUG_PRINT_ERROR("TYPE ERROR: expected lambda expresions, got %s\n", type_to_string(lambda->type));
+            RAISE_ERROR("TYPE ERROR: expected lambda expresions, got %s\n", type_to_string(lambda->type));
             exit(1);               
         }
         Object *args = cdr(expr);
@@ -470,7 +471,7 @@ Object *eval_list(Env *local, Object *expr) {
         return value;
     }
 
-    DEBUG_PRINT_ERROR("Cannot evaluate expression yet\n");
+    RAISE_ERROR("Cannot evaluate expression.\n");
     print_object(expr);
     printf("\n");
     exit(1);
@@ -487,4 +488,13 @@ Object *eval(Env *local, Object *expr) {
         result = eval_list(local, expr);
     DEBUG_PRINT_VERBOSE("leave: eval: expr: %s\n", object_to_string(result));
     return result;
+}
+
+Object *safe_eval(Env *env, Object *expr) {
+    if (setjmp(eval_env) == 0) {
+        return eval(env, expr);  // normal evaluation
+    } 
+    Object *error = current_error;
+    current_error = NULL;  // reset error
+    return error;  // error occurred
 }

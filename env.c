@@ -1,6 +1,7 @@
 #include "env.h"
 #include "debug.h"
 #include "gmp.h"
+#include "error.h"
 
 Env *global = NULL;
 
@@ -11,10 +12,6 @@ void env_define(Env *local, const char *name, Object *value) {
     b->next = local->bindings;
     local->bindings = b;
     DEBUG_PRINT_VERBOSE("env_define: env: %p, %s = %s\n", local, name, object_to_string(value));
-    if (mpz_cmp_ui(value->int_val, 0) < 0) {
-        DEBUG_PRINT_ERROR("Invalid number: %s\n", object_to_string(value));
-        exit(1);
-    }
 }
 
 bool set(Env *local, const char *name, Object *value) {
@@ -41,13 +38,14 @@ Object *env_lookup(Env *local, const char *name) {
             }
         }
     }
-    DEBUG_PRINT_ERROR("env_lookup: env: %p, %s not found\n", local, name);
+    DEBUG_PRINT_VERBOSE("env_lookup: env: %p, %s not found\n", local, name);
+    RAISE_ERROR("env_lookup: %s not found\n", name);
     exit(1);
 }
 
 Env* push_env(Env *local){
     if(local == NULL){
-        DEBUG_PRINT_ERROR("expected enviroment\n");
+        RAISE_ERROR("expected enviroment\n");
         exit(1);
     }
     Env* new = malloc(sizeof(Env));

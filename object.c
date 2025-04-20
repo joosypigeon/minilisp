@@ -3,6 +3,7 @@
 #include "object.h"
 #include "debug.h"
 #include "symbols.h"
+#include "error.h"
 
 // Singleton NIL object
 Object *NIL = &(Object){ .type = TYPE_NIL, .symbol = "#f" };
@@ -30,7 +31,7 @@ Object *make_number_from_string(const char *tok) {
     obj->type = TYPE_INT;
     mpz_init_set_str(obj->int_val, tok, 10);
     if (mpz_cmp_ui(obj->int_val, 0) < 0) {
-        DEBUG_PRINT_ERROR("Invalid number: %s\n", tok);
+        RAISE_ERROR("Invalid number: %s\n", tok);
         exit(1);
     }
     return obj;
@@ -95,7 +96,7 @@ Object *cons(Object *car, Object *cdr) {
 
 Object *car(Object *obj) {
     if (obj->type != TYPE_PAIR) {
-        DEBUG_PRINT_ERROR("Error: car called on non-pair %s\n", object_to_string(obj));
+        RAISE_ERROR("Error: car called on non-pair %s\n", object_to_string(obj));
         exit(1);
     }
     return obj->car;
@@ -103,7 +104,7 @@ Object *car(Object *obj) {
 
 Object *cdr(Object *obj) {
     if (obj->type != TYPE_PAIR) {
-        fprintf(stderr, "Error: cdr called on non-pair\n");
+        RAISE_ERROR("Error: cdr called on non-pair\n");
         exit(1);
     }
     return obj->cdr;
@@ -132,12 +133,12 @@ int list_length(Object *obj) {
 
     while (obj != NIL) {
         if (!obj) {
-            DEBUG_PRINT_ERROR("unexpected NULL object in list\n");
+            RAISE_ERROR("unexpected NULL object in list\n");
             exit(1);
         }
 
         if (obj->type != TYPE_PAIR) {
-            DEBUG_PRINT_ERROR("list_length: not TYPE_PAIR, found %s\n",
+            RAISE_ERROR("list_length: not TYPE_PAIR, found %s\n",
                               type_to_string(obj->type));
             exit(1);
         }
