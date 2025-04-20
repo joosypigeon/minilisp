@@ -40,13 +40,11 @@ Object *env_lookup(Env *local, const char *name) {
     }
     DEBUG_PRINT_VERBOSE("env_lookup: env: %p, %s not found\n", local, name);
     RAISE_ERROR("env_lookup: %s not found\n", name);
-    exit(1);
 }
 
 Env* push_env(Env *local){
     if(local == NULL){
         RAISE_ERROR("expected enviroment\n");
-        exit(1);
     }
     Env* new = malloc(sizeof(Env));
     new->bindings = NULL;
