@@ -339,6 +339,36 @@ Object *handle_atom(Env *env, Object *expr) {
     }
 }
 
+Object *handle_cond(Env *env, Object *args) {
+    DEBUG_PRINT_VERBOSE("enter: handle_cond: env: %p, args %s\n", env, object_to_string(args));
+    for (Object *clause = cdr(args); !is_nil(clause); clause = cdr(clause)) {
+        Object *pair = car(clause);
+        if (!is_pair(pair)) {
+            DEBUG_PRINT_ERROR("handle_cond: expected a pair\n");
+            exit(1);
+        }
+
+        Object *test = car(pair);
+        Object *body = cdr(pair);
+
+        Object *result = eval(env, test);
+
+        if (!is_nil(result)) {
+            // Test passed, evaluate body
+            if (is_nil(body))
+                return result; // No body? Return test result
+
+            Object *last = NIL;
+            for (; !is_nil(body); body = cdr(body))
+                last = eval(env, car(body));
+            return last;
+        }
+    }
+
+    return NIL; // No clause matched
+}
+
+
 typedef struct {
     const char *symbol;
     SpecialFormHandler handler;
@@ -362,6 +392,7 @@ DispatchEntry special_forms[] = {
     { SYM_PRINT, handle_print},
     { SYM_LIST, handle_list},
     { SYM_ATOM, handle_atom},
+    { SYM_COND, handle_cond},
     // ... add more here
     { NULL, NULL }
 };
@@ -448,8 +479,10 @@ Object *eval_list(Env *local, Object *expr) {
 Object *eval(Env *local, Object *expr) {
     DEBUG_PRINT_VERBOSE("enter: eval: local: %p, expr: %s\n", local, object_to_string(expr));
     Object *result = expr;
-    if (expr->type == TYPE_SYMBOL)
+    if (expr->type == TYPE_SYMBOL) {
+        if(expr==TRUE) return TRUE;
         result = env_lookup(local, expr->symbol);
+    }
     if (expr->type == TYPE_PAIR)
         result = eval_list(local, expr);
     DEBUG_PRINT_VERBOSE("leave: eval: expr: %s\n", object_to_string(result));

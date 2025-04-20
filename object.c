@@ -3,13 +3,17 @@
 #include "symbols.h"
 
 // Singleton NIL object
-Object *NIL = &(Object){ .type = TYPE_NIL };
+Object *NIL = &(Object){ .type = TYPE_NIL, .symbol = "#f" };
 
 // Singleton true object
-static Object *TRUE = &(Object){ .type = TYPE_SYMBOL, .symbol = "#t" };
+Object *TRUE = &(Object){ .type = TYPE_SYMBOL, .symbol = "#t" };
 
-bool islist(Object *item){
+bool is_pair(Object *item){
     return item->type==TYPE_PAIR;
+}
+
+bool is_nil(Object *item){
+    return item==NIL;
 }
 
 Object *make_number(int n) {

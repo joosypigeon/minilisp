@@ -21,6 +21,8 @@ typedef struct Object Object;
 
 // Singleton NIL object
 extern Object *NIL;
+// Singleton true object
+extern Object *TRUE;
 
 typedef struct Env Env; // forward declaration for closure support
 
@@ -43,6 +45,9 @@ struct Object {
     };
 };
 
+
+bool is_pair(Object *item);
+bool is_nil(Object *item);
 Object *make_number(int value);
 Object *make_number_from_string(const char *tok);
 Object *make_symbol(const char *name);

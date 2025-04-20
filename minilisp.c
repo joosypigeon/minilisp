@@ -19,6 +19,8 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    DEBUG_PRINT_VERBOSE("main: argc: %d, argv[1]: %s\n", argc, argv[1]);
+    
     global = malloc(sizeof(Env));
     global->bindings = NULL;
     global->parent = NULL;

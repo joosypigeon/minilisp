@@ -6,6 +6,7 @@
 #define SYM_LAMBDA  "lambda"
 #define SYM_PAIR    "pair"
 #define SYM_NIL     "NIL"
+#define SYM_TRUE    "#t"
 #define SYM_UNKOWN  "unkown"
 
 #define SYM_DEFINE  "define"
@@ -18,6 +19,7 @@
 #define SYM_CONS    "cons"
 #define SYM_CAR     "car"
 #define SYM_CDR     "cdr"
+#define SYM_COND    "cond"
 #define SYM_LIST    "list"
 #define SYM_BEGIN   "begin"
 #define SYM_PLUS    "+"

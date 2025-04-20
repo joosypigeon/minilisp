@@ -1,0 +1,6 @@
+"pass: cond true"
+"pass: cond second branch"
+"pass: cond fallback"
+"pass: cond many falses"
+"pass: cond nested"
+"pass: cond numeric"
