@@ -1,3 +1,5 @@
+#include <stdarg.h>
+
 #include "object.h"
 #include "debug.h"
 #include "symbols.h"
@@ -65,6 +67,22 @@ Object *make_nil(void) {
 
 Object *make_true(void) {
     return TRUE;
+}
+
+Object *make_error(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+
+    char *msg = malloc(256);
+    vsnprintf(msg, 256, fmt, args);  // format like printf
+
+    va_end(args);
+
+    Object *err = malloc(sizeof(Object));
+    err->type = TYPE_ERROR;
+    err->error_msg = msg;
+
+    return err;
 }
 
 Object *cons(Object *car, Object *cdr) {

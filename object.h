@@ -14,7 +14,8 @@ typedef enum {
     TYPE_LAMBDA,
     TYPE_PAIR,
     TYPE_NIL,
-    TYPE_STRING
+    TYPE_STRING,
+    TYPE_ERROR
 } Type;
 
 typedef struct Object Object;
@@ -32,6 +33,7 @@ struct Object {
         mpz_t int_val;
         char *symbol;
         char *str_val; // for TYPE_STRING
+        char *error_msg; // for TYPE_ERROR
         struct {
             Object *params;
             Object *body;
@@ -55,6 +57,7 @@ Object *make_string(const char *value);
 Object *make_lambda(Object *params, Object *body, Env *env);
 Object *make_nil(void);
 Object *make_true(void);
+Object *make_error(const char *msg, ...);
 Object *cons(Object *car, Object *cdr);
 Object *car(Object *obj);
 Object *cdr(Object *obj);
