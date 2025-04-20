@@ -1,0 +1,7 @@
+"pass: let one binding"
+"pass: let two bindings"
+"pass: let shadowing inner wins"
+"pass: let shadowing with use"
+"pass: let inside lambda"
+"pass: let with computed bindings"
+"pass: let with list binding"
