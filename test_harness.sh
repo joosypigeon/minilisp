@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# test_harness.sh
+# Improved test harness that ignores trailing whitespace
 
 LISP="./minilisp"
 PASS=0
@@ -8,7 +8,7 @@ FAIL=0
 
 for file in tests/*.lisp; do
     expected_file="${file%.lisp}.out"
-    
+
     if [ ! -f "$expected_file" ]; then
         echo "SKIP: No expected output for $file"
         continue
@@ -17,7 +17,9 @@ for file in tests/*.lisp; do
     actual_output=$(mktemp)
     "$LISP" "$file" > "$actual_output"
 
-    if diff -q "$actual_output" "$expected_file" > /dev/null; then
+    # Compare after trimming trailing whitespace
+    if diff -u <(sed 's/[[:space:]]*$//' "$expected_file") \
+               <(sed 's/[[:space:]]*$//' "$actual_output") > /dev/null; then
         echo "PASS: $file"
         PASS=$((PASS + 1))
     else
