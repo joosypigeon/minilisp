@@ -1,6 +1,7 @@
 #include "parse.h"
 #include "tokenize.h"
 #include "symbols.h"
+#include "debug.h"
 
 
 Object *parse_expr();
@@ -51,6 +52,7 @@ Object *parse_expr() {
     char *end;
     long val = strtol(tok, &end, 10);
     if (*end == '\0') return make_number_from_string(tok);
+    if (strcmp(tok, SYM_FALSE) == 0) return make_nil();
     if (strcmp(tok, SYM_NIL) == 0) return make_nil();
     if (strcmp(tok, SYM_TRUE) == 0) return make_true();
     return make_symbol(tok);

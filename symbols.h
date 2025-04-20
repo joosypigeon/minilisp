@@ -7,6 +7,7 @@
 #define SYM_PAIR    "pair"
 #define SYM_NIL     "NIL"
 #define SYM_TRUE    "#t"
+#define SYM_FALSE   "#f"
 #define SYM_UNKOWN  "unkown"
 
 #define SYM_DEFINE  "define"
