@@ -354,8 +354,7 @@ Object *eval_function(Env *env, Object* lambda, Object* args){
 
     Object* params = lambda->lambda.params;
 
-    //Env *local = push_env(env);
-    Env *local = push_env(lambda->lambda.env);
+    Env *local = push_env(lambda->lambda.env);// local enviroment with the lambda defining env as parent
 
     int params_length = list_length(params);
     int args_length = list_length(args);
@@ -364,7 +363,7 @@ Object *eval_function(Env *env, Object* lambda, Object* args){
     
     while (params != NIL && args != NIL) {
         Object *param = car(params);  // symbol
-        Object *arg = eval(env, car(args));      // value
+        Object *arg = eval(env, car(args)); // <---  evaluate the argument in the calling environment
     
         if (param->type != TYPE_SYMBOL)
             RAISE_ERROR("TYPE ERROR: expected a symbol\n"); 
