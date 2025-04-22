@@ -5,6 +5,62 @@
 #include "symbols.h"
 #include "error.h"
 
+typedef struct ObjectList {
+    Object *obj;
+    struct ObjectList *next;
+} ObjectList;
+
+ObjectList *allocated_objects = NULL;
+
+void track_object(Object *obj) {
+    ObjectList *node = malloc(sizeof(ObjectList));
+    node->obj = obj;
+    node->next = allocated_objects;
+    allocated_objects = node;
+}
+
+void free_object(Object *obj) {
+    if (!obj) return;
+
+    switch (obj->type) {
+        case TYPE_INT:
+            mpz_clear(obj->int_val);
+            break;
+        case TYPE_SYMBOL:
+        case TYPE_STRING:
+            free(obj->symbol); // or .str_val
+            break;
+        case TYPE_ERROR:
+            free(obj->error_msg);
+            break;
+        case TYPE_PAIR:
+            // Do not recursively free car/cdr — just the container.
+            break;
+        case TYPE_LAMBDA:
+            // Don't free .params/body/env — owned elsewhere.
+            break;
+        default:
+            break;
+    }
+
+    free(obj);
+}
+
+void free_all_objects() {
+    int count = 0;
+    ObjectList *cur = allocated_objects;
+    while (cur) {
+        ObjectList *next = cur->next;
+        free_object(cur->obj);
+        free(cur);
+        cur = next;
+        count++;
+    }
+    allocated_objects = NULL;
+    DEBUG_PRINT_INFO("Freed %d objects\n", count);
+}
+
+
 // Singleton NIL object
 Object *NIL = &(Object){ .type = TYPE_NIL, .symbol = "#f" };
 
@@ -23,6 +79,7 @@ Object *make_number(int n) {
     Object *obj = malloc(sizeof(Object));
     obj->type = TYPE_INT;
     mpz_init_set_si(obj->int_val, n); // initialize and set value
+    track_object(obj); // track the object
     return obj;
 }
 
@@ -30,10 +87,7 @@ Object *make_number_from_string(const char *tok) {
     Object *obj = malloc(sizeof(Object));
     obj->type = TYPE_INT;
     mpz_init_set_str(obj->int_val, tok, 10);
-    if (mpz_cmp_ui(obj->int_val, 0) < 0) {
-        RAISE_ERROR("Invalid number: %s\n", tok);
-        exit(1);
-    }
+    track_object(obj); // track the object
     return obj;
 }
 
@@ -41,6 +95,7 @@ Object *make_symbol(const char *name) {
     Object *obj = malloc(sizeof(Object));
     obj->type = TYPE_SYMBOL;
     obj->symbol = xstrdup(name);
+    track_object(obj); // track the object  
     return obj;
 }
 
@@ -48,6 +103,7 @@ Object *make_string(const char *value) {
     Object *obj = malloc(sizeof(Object));
     obj->type = TYPE_STRING;
     obj->str_val = xstrdup(value);  // use your safe strdup
+    track_object(obj); // track the object      
     return obj;
 }
 
@@ -59,6 +115,7 @@ Object *make_lambda(Object *params, Object *body, Env *env) {
     obj->lambda.params = params;
     obj->lambda.body = body;
     obj->lambda.env = env;
+    track_object(obj); // track the object  
     return obj;
 }
 
@@ -82,7 +139,7 @@ Object *make_error(const char *fmt, ...) {
     Object *err = malloc(sizeof(Object));
     err->type = TYPE_ERROR;
     err->error_msg = msg;
-
+    track_object(err); // track the object
     return err;
 }
 
@@ -91,13 +148,13 @@ Object *cons(Object *car, Object *cdr) {
     obj->type = TYPE_PAIR;
     obj->car = car;
     obj->cdr = cdr;
+    track_object(obj); // track the object
     return obj;
 }
 
 Object *car(Object *obj) {
     if (obj->type != TYPE_PAIR) {
         RAISE_ERROR("Error: car called on non-pair %s\n", object_to_string(obj));
-        exit(1);
     }
     return obj->car;
 }
@@ -105,7 +162,6 @@ Object *car(Object *obj) {
 Object *cdr(Object *obj) {
     if (obj->type != TYPE_PAIR) {
         RAISE_ERROR("Error: cdr called on non-pair\n");
-        exit(1);
     }
     return obj->cdr;
 }

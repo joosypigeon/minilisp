@@ -5,6 +5,52 @@
 
 Env *global = NULL;
 
+typedef struct EnvList {
+    Env *env;
+    struct EnvList *next;
+} EnvList;
+
+EnvList *allocated_envs = NULL;
+
+void track_envs(Env *env) {
+    EnvList *node = malloc(sizeof(EnvList));
+    node->env = env;
+    node->next = allocated_envs;
+    allocated_envs = node;
+}
+
+void free_env(Env *env) {
+    if (!env) {
+        DEBUG_PRINT_ERROR("free_env: NULL env\n");
+        return;
+    }
+
+    Binding *b = env->bindings;
+    while (b) {
+        Binding *next = b->next;
+        free(b->name);
+        //free(b->value);
+        free(b);
+        b = next;
+    }
+
+    free(env);
+}
+
+void free_all_envs() {
+    int count = 0;
+    EnvList *cur = allocated_envs;
+    while (cur) {
+        EnvList *next = cur->next;
+        free_env(cur->env);
+        free(cur);
+        cur = next;
+        count++;
+    }
+    allocated_envs = NULL;
+    DEBUG_PRINT_INFO("Freed %d envs\n", count);
+}
+
 void env_define(Env *local, const char *name, Object *value) {
     Binding *b = malloc(sizeof(Binding));
     b->name = xstrdup(name);
@@ -49,6 +95,7 @@ Env* push_env(Env *local){
     Env* new = malloc(sizeof(Env));
     new->bindings = NULL;
     new->parent = local;
+    track_envs(new);
     DEBUG_PRINT_VERBOSE("push_env: new env: %p, parent: %p\n", new, local);
     return new;
 }

@@ -8,6 +8,8 @@
 #include "util.h"
 #include <gmp.h>
 
+void free_all_objects(void);
+
 typedef enum {
     TYPE_INT,
     TYPE_SYMBOL,

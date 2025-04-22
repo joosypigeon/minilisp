@@ -37,12 +37,11 @@ void repl() {
             Object *result = safe_eval(global, expr);
             if (result->type == TYPE_ERROR) {
                 printf("%s\n", result->error_msg);
-                free(result->error_msg);
-                free(result);
             }
         }
     }
-
+    free_all_objects();
+    free_all_envs();
     printf("Goodbye.\n");
 }
 
@@ -56,11 +55,11 @@ void batch (char *filename) {
         Object *result = safe_eval(global, expr);
         if (result->type == TYPE_ERROR) {
             printf("%s\n", result->error_msg);
-            free(result->error_msg);
-            free(result);
         }
     }
     free(source);
+    free_all_objects();
+    free_all_envs();
 }
 
 // ───── Main ─────
@@ -74,11 +73,9 @@ int main(int argc, char **argv) {
 
     if (argc == 2) {
         batch(argv[1]);
-        free(global);
         return 0;
     }
 
     repl();
-    free(global);
     return 0;
 }

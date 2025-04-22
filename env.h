@@ -21,5 +21,6 @@ bool set(Env *local, const char *name, Object *value);
 Object *env_lookup(Env *local, const char *name);
 Env* push_env(Env *local);
 Env* pop_env(Env *local);
+void free_all_envs();
 
 #endif // ENV_H
