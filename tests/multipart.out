@@ -1,0 +1,20 @@
+"evaluating f1"
+"pass: f1 return value"
+1
+2
+3
+"pass: closure count"
+"start f2"
+12
+"pass: f2 result"
+5
+"pass: f3 let-sequence"
+4
+3
+2
+1
+0
+"pass: factorial"
+"Hello, "
+"Simon"
+"pass: hello closure"
