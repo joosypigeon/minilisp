@@ -23,6 +23,7 @@
 #define SYM_COND    "cond"
 #define SYM_LIST    "list"
 #define SYM_BEGIN   "begin"
+#define SYM_NUMBER_EQUAL  "="
 #define SYM_PLUS    "+"
 #define SYM_MINUS   "-"
 #define SYM_TIMES   "*"

@@ -169,6 +169,17 @@ Object *handle_equal(Env *local, Object *expr){
     return lisp_equal(second, third);
 }
 
+Object *handle_equal_number(Env *local, Object *expr){
+    DEBUG_PRINT_VERBOSE("enter: handle_equal: local: %p, expr: %s\n", local, object_to_string(expr));
+    Object *second = eval(local, cadr(expr));
+    if (second->type != TYPE_INT)
+        RAISE_ERROR("handle_equal_number: expected int\n");
+    Object *third = eval(local, caddr(expr));
+    if (third->type != TYPE_INT)
+        RAISE_ERROR("handle_equal_number: expected int\n");
+    return lisp_equal(second, third);
+}
+
 Object *handle_if(Env *env, Object *expr) {
     int length = list_length(expr);
     if (length != 4) 
@@ -343,6 +354,7 @@ DispatchEntry special_forms[] = {
     { SYM_LIST, handle_list},
     { SYM_ATOM, handle_atom},
     { SYM_COND, handle_cond},
+    { SYM_NUMBER_EQUAL, handle_equal_number},
     // ... add more here
     { NULL, NULL }
 };
@@ -370,6 +382,7 @@ Object *eval_function(Env *env, Object* lambda, Object* args){
     
         DEBUG_PRINT_VERBOSE("eval_function: param: %s, arg: %s\n", param->symbol, object_to_string(arg));
     
+
         env_define(local, param->symbol, arg);
     
         params = cdr(params);
