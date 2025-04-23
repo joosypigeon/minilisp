@@ -232,16 +232,22 @@ Object *handle_cdr(Env *env, Object *expr) {
     return result;
 }
 
-Object *handle_begin(Env *env, Object *expr) {
-    DEBUG_PRINT_VERBOSE("enter: begin: env: %p, expr = %s\n", env, object_to_string(expr));
-
-    Object *body = cdr(expr);  // skip the symbol "begin"
+Object *run_sequence(Env *env, Object *body) {
     Object *result = NIL;
-
     while (body != NIL) {
         result = eval(env, car(body));
         body = cdr(body);
     }
+    return result;
+}
+
+Object *handle_begin(Env *env, Object *expr) {
+    DEBUG_PRINT_VERBOSE("enter: begin: env: %p, expr = %s\n", env, object_to_string(expr));
+
+    Object *body = cdr(expr);  // skip the symbol "begin"
+    
+    Object *result = run_sequence(env, body);
+
     DEBUG_PRINT_VERBOSE("leave: begin: result = %s\n", object_to_string(result));
     return result;  // return the last result
 }
@@ -249,8 +255,9 @@ Object *handle_begin(Env *env, Object *expr) {
 Object *handle_let(Env *env, Object *expr) {
     // (let ((x 1) (y 2)) body)
     Object *bindings = cadr(expr);
-    Object *body = caddr(expr);
-
+    DEBUG_PRINT_VERBOSE("handle_let: bindings: %s\n", object_to_string(bindings));
+    Object *body = cddr(expr);
+    DEBUG_PRINT_VERBOSE("handle_let: body: %s\n", object_to_string(body));
     Env *extended = push_env(env);
 
     while (bindings != NIL) {
@@ -262,7 +269,9 @@ Object *handle_let(Env *env, Object *expr) {
         bindings = cdr(bindings);
     }
 
-    return eval(extended, body);
+    Object *result = run_sequence(extended, body);
+
+    return result;  // return the last result
 }
 
 Object *handle_list(Env *env, Object *expr) {
@@ -329,6 +338,35 @@ Object *handle_cond(Env *env, Object *args) {
     return make_nil(); // No clause matched
 }
 
+Object *handle_string_append(Env *env, Object *expr) {
+    DEBUG_PRINT_VERBOSE("enter: string-append: %s\n", object_to_string(expr));
+
+    Object *args = cdr(expr);
+    size_t total_len = 1;  // null terminator
+
+    // First pass: compute total length
+    for (Object *iter = args; !is_nil(iter); iter = cdr(iter)) {
+        Object *arg = eval(env, car(iter));
+        if (arg->type != TYPE_STRING) {
+            RAISE_ERROR("string-append: expected string, got %s\n", type_to_string(arg->type));
+        }
+        total_len += strlen(arg->str_val);
+    }
+
+    // Allocate result string
+    char *buffer = malloc(total_len);
+    buffer[0] = '\0';
+
+    // Second pass: concatenate
+    for (Object *iter = args; !is_nil(iter); iter = cdr(iter)) {
+        Object *arg = eval(env, car(iter));
+        strcat(buffer, arg->str_val);
+    }
+
+    Object *result = make_string(buffer);
+    free(buffer);  // `make_string` copies it
+    return result;
+}
 
 typedef struct {
     const char *symbol;
@@ -355,6 +393,7 @@ DispatchEntry special_forms[] = {
     { SYM_ATOM, handle_atom},
     { SYM_COND, handle_cond},
     { SYM_NUMBER_EQUAL, handle_equal_number},
+    { SYM_STRING_APPEND, handle_string_append },
     // ... add more here
     { NULL, NULL }
 };
@@ -390,6 +429,7 @@ Object *eval_function(Env *env, Object* lambda, Object* args){
     }
 
     Object* body = lambda->lambda.body;
+    DEBUG_PRINT_VERBOSE("eval_function: body: %s\n", object_to_string(body));
     Object* value = NULL;
     while (body != NIL) {
         Object* current = car(body);
