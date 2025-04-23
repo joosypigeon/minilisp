@@ -32,7 +32,7 @@ Object *handle_define(Env *local, Object *expr) {
         if(name->type!=TYPE_SYMBOL)
             RAISE_ERROR("handle_define: expected function name\n");
         Object* parameters = cdr(second);
-        Object *body = caddr(expr);
+        Object *body = cddr(expr);
         if(body->type!=TYPE_PAIR)
             RAISE_ERROR("handle_define: expected function body\n");
 
@@ -66,7 +66,7 @@ Object *handle_set(Env *local, Object *expr) {
         if(name->type!=TYPE_SYMBOL)
             RAISE_ERROR("handle_set: expected function name\n");
         Object* parameters = cdr(second);
-        Object *body = caddr(expr);
+        Object *body = cddr(expr);
         if(body->type!=TYPE_PAIR)
             RAISE_ERROR("handle_set: expected function body\n");
         Env *env = push_env(local);
@@ -157,7 +157,7 @@ Object *handle_lambda(Env *local, Object *expr) {
     Object* params = cadr(expr);
     if(params->type!=TYPE_PAIR && params->type!=TYPE_NIL)
         RAISE_ERROR("expected parameters\n");
-    Object *body = caddr(expr);
+    Object *body = cddr(expr);
     Object* lambda = make_lambda(params, body, env);
     return lambda;
 }
@@ -377,8 +377,14 @@ Object *eval_function(Env *env, Object* lambda, Object* args){
     }
 
     Object* body = lambda->lambda.body;
+    Object* value = NULL;
+    while (body != NIL) {
+        Object* current = car(body);
+        DEBUG_PRINT_VERBOSE("eval_function: current: %s\n", object_to_string(current));
+        value = eval(local, current);
+        body = cdr(body);
+    }
 
-    Object* value = eval(local, body);
     DEBUG_PRINT_VERBOSE("leave: eval_function: value: %s\n", object_to_string(value));
     return value;
 }

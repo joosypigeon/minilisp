@@ -1,5 +1,9 @@
 "hello world"
 11
 (1 . 2)
-(lambda (x) x)
+(lambda (x) (x))
+#t
+NIL
+"hi"
+"hi"
 "Done!"
