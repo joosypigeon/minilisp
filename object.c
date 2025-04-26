@@ -4,61 +4,7 @@
 #include "debug.h"
 #include "symbols.h"
 #include "error.h"
-
-typedef struct ObjectList {
-    Object *obj;
-    struct ObjectList *next;
-} ObjectList;
-
-ObjectList *allocated_objects = NULL;
-
-void track_object(Object *obj) {
-    ObjectList *node = malloc(sizeof(ObjectList));
-    node->obj = obj;
-    node->next = allocated_objects;
-    allocated_objects = node;
-}
-
-void free_object(Object *obj) {
-    if (!obj) return;
-
-    switch (obj->type) {
-        case TYPE_INT:
-            mpz_clear(obj->int_val);
-            break;
-        case TYPE_SYMBOL:
-        case TYPE_STRING:
-            free(obj->symbol); // or .str_val
-            break;
-        case TYPE_ERROR:
-            free(obj->error_msg);
-            break;
-        case TYPE_PAIR:
-            // Do not recursively free car/cdr — just the container.
-            break;
-        case TYPE_LAMBDA:
-            // Don't free .params/body/env — owned elsewhere.
-            break;
-        default:
-            break;
-    }
-
-    free(obj);
-}
-
-void free_all_objects() {
-    int count = 0;
-    ObjectList *cur = allocated_objects;
-    while (cur) {
-        ObjectList *next = cur->next;
-        free_object(cur->obj);
-        free(cur);
-        cur = next;
-        count++;
-    }
-    allocated_objects = NULL;
-    DEBUG_PRINT_INFO("Freed %d objects\n", count);
-}
+#include "gc.h"
 
 
 // Singleton NIL object
@@ -92,6 +38,7 @@ Object *make_number_from_string(const char *tok) {
 }
 
 Object *make_symbol(const char *name) {
+    DEBUG_PRINT_VERBOSE("make_symbol: name: %s\n", name);   
     Object *obj = malloc(sizeof(Object));
     obj->type = TYPE_SYMBOL;
     obj->symbol = xstrdup(name);
@@ -205,7 +152,6 @@ int list_length(Object *obj) {
 
     return len;
 }
-
 
 char * type_to_string(Type type) {
     switch (type) {

@@ -166,6 +166,7 @@ Object *handle_equal(Env *local, Object *expr){
     DEBUG_PRINT_VERBOSE("enter: handle_equal: local: %p, expr: %s\n", local, object_to_string(expr));
     Object *second = eval(local, cadr(expr));
     Object *third = eval(local, caddr(expr));
+    DEBUG_PRINT_VERBOSE("handle_equal: second: %s, third: %s\n", object_to_string(second), object_to_string(third));
     return lisp_equal(second, third);
 }
 

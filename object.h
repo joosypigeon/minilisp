@@ -31,21 +31,22 @@ typedef struct Env Env; // forward declaration for closure support
 
 struct Object {
     Type type;
+    bool marked;  
+    Object *next_allocated;
     union {
         mpz_t int_val;
         char *symbol;
-        char *str_val; // for TYPE_STRING
-        char *error_msg; // for TYPE_ERROR
+        char *str_val;
+        char *error_msg;
         struct {
             Object *params;
             Object *body;
             Env *env;
         } lambda;
-
         struct {
             Object *car;
             Object *cdr;
-        }; // for TYPE_PAIR
+        };
     };
 };
 

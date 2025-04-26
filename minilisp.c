@@ -12,6 +12,7 @@
 #include "parse.h"
 #include "eval.h"
 #include "error.h"
+#include "gc.h"
 
 jmp_buf eval_env;
 Object *current_error = NULL;
@@ -38,6 +39,7 @@ void repl() {
             if (result->type == TYPE_ERROR) {
                 printf("%s\n", result->error_msg);
             }
+            gc_collect();  // Collect garbage after each evaluation
         }
     }
     free_all_objects();
@@ -56,6 +58,7 @@ void batch (char *filename) {
         if (result->type == TYPE_ERROR) {
             printf("%s\n", result->error_msg);
         }
+        gc_collect();  // Collect garbage after each evaluation
     }
     free(source);
     free_all_objects();
