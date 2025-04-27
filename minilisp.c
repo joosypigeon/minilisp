@@ -72,8 +72,9 @@ int main(int argc, char **argv) {
     global = malloc(sizeof(Env));
     global->bindings = NULL;
     global->parent = NULL;
+    track_envs(global);
     DEBUG_PRINT_VERBOSE("global env: %p\n", global);
-
+    
     if (argc == 2) {
         batch(argv[1]);
         return 0;

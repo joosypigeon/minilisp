@@ -23,9 +23,14 @@ Object *parse_list() {
             tail->cdr = node;
             tail = node;
         }
+        DEBUG_PRINT_VERBOSE("-----------------------------------------------\n");
+        DEBUG_PRINT_VERBOSE("parse_list: item: %s\n", object_to_string(item));
+        DEBUG_PRINT_VERBOSE("parse_list: head: %s, the pointer: %p\n", object_to_string(head), head);
+        DEBUG_PRINT_VERBOSE("-----------------------------------------------\n");
     }
 
     current_token++;  // skip the closing ')'
+    DEBUG_PRINT_VERBOSE("parse_list: head: %s,  the pointer; %p\n", object_to_string(head), head);
     return head;
 }
 
@@ -36,6 +41,7 @@ Object *parse_expr() {
     if (strcmp(tok, "'") == 0) {
         current_token++;  // skip the quote token
         Object *quoted = parse_expr();  // parse the thing being quoted
+        DEBUG_PRINT_VERBOSE("parse_expr: quoted: %s\n", object_to_string(quoted));
         return cons(make_symbol("quote"), cons(quoted, NIL));
     }
 

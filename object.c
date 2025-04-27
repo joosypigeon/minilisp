@@ -39,6 +39,11 @@ Object *make_number_from_string(const char *tok) {
 
 Object *make_symbol(const char *name) {
     DEBUG_PRINT_VERBOSE("make_symbol: name: %s\n", name);   
+    Object *existing = check_for_symbol(name);
+    if (existing) {
+        DEBUG_PRINT_VERBOSE("make_symbol: found existing symbol: %s\n", name);
+        return existing; // return existing symbol
+    }
     Object *obj = malloc(sizeof(Object));
     obj->type = TYPE_SYMBOL;
     obj->symbol = xstrdup(name);

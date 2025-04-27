@@ -23,7 +23,7 @@ Object *handle_define(Env *local, Object *expr) {
     Object *second = cadr(expr);
     if (second->type == TYPE_SYMBOL) {
         Object *val = eval(local, caddr(expr));
-        env_define(local, second->symbol, val);
+        env_define(local, second, val);
         return val;
     }
     if(second->type==TYPE_PAIR){
@@ -38,7 +38,7 @@ Object *handle_define(Env *local, Object *expr) {
 
         Object* lambda = make_lambda(parameters, body, local);
 
-        env_define(local, name->symbol, lambda);
+        env_define(local, name, lambda);
 
         return lambda;
     }
@@ -55,7 +55,7 @@ Object *handle_set(Env *local, Object *expr) {
     Object *second = cadr(expr);
     if (second->type == TYPE_SYMBOL) {
         Object *val = eval(local, caddr(expr));
-        bool found = set(local, second->symbol, val);
+        bool found = set(local, second, val);
         if (!found)
             RAISE_ERROR("handle_set: %s not found\n", second->symbol);
         return val;
@@ -72,7 +72,7 @@ Object *handle_set(Env *local, Object *expr) {
         Env *env = push_env(local);
         Object* lambda = make_lambda(parameters, body, env);
 
-        bool found = set(local, second->symbol, lambda);
+        bool found = set(local, second, lambda);
         if (!found)
             RAISE_ERROR("handle_set: %s not found\n", second->symbol);
         return lambda;
@@ -266,7 +266,7 @@ Object *handle_let(Env *env, Object *expr) {
         Object *name = car(pair);          // x
         Object *value_expr = cadr(pair);   // 1
         Object *value = eval(env, value_expr);  // evaluate in original env
-        env_define(extended, name->symbol, value);
+        env_define(extended, name, value);
         bindings = cdr(bindings);
     }
 
@@ -423,7 +423,7 @@ Object *eval_function(Env *env, Object* lambda, Object* args){
         DEBUG_PRINT_VERBOSE("eval_function: param: %s, arg: %s\n", param->symbol, object_to_string(arg));
     
 
-        env_define(local, param->symbol, arg);
+        env_define(local, param, arg);
     
         params = cdr(params);
         args = cdr(args);
@@ -453,7 +453,7 @@ Object *eval_list(Env *local, Object *expr) {
             }
         }
         /* expect function call*/
-        Object *lambda = env_lookup(local, first->symbol);
+        Object *lambda = env_lookup(local, first);
         if(lambda->type!=TYPE_LAMBDA)
             RAISE_ERROR("TYPE ERROR: expected lambda expression\n");
         DEBUG_PRINT_VERBOSE("eval_list: found lambda object\n");
@@ -479,7 +479,7 @@ Object *eval(Env *local, Object *expr) {
     Object *result = expr;
     if (expr->type == TYPE_SYMBOL) {
         if(expr==TRUE) return TRUE;
-        result = env_lookup(local, expr->symbol);
+        result = env_lookup(local, expr);
     }
     if (expr->type == TYPE_PAIR)
         result = eval_list(local, expr);

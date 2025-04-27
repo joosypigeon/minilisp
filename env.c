@@ -2,69 +2,24 @@
 #include "debug.h"
 #include "gmp.h"
 #include "error.h"
+#include "gc.h"
 
 Env *global = NULL;
 
-typedef struct EnvList {
-    Env *env;
-    struct EnvList *next;
-} EnvList;
-
-EnvList *allocated_envs = NULL;
-
-void track_envs(Env *env) {
-    EnvList *node = malloc(sizeof(EnvList));
-    node->env = env;
-    node->next = allocated_envs;
-    allocated_envs = node;
-}
-
-void free_env(Env *env) {
-    if (!env) {
-        DEBUG_PRINT_ERROR("free_env: NULL env\n");
-        return;
-    }
-
-    Binding *b = env->bindings;
-    while (b) {
-        Binding *next = b->next;
-        free(b->name);
-        //free(b->value);
-        free(b);
-        b = next;
-    }
-
-    free(env);
-}
-
-void free_all_envs() {
-    int count = 0;
-    EnvList *cur = allocated_envs;
-    while (cur) {
-        EnvList *next = cur->next;
-        free_env(cur->env);
-        free(cur);
-        cur = next;
-        count++;
-    }
-    allocated_envs = NULL;
-    DEBUG_PRINT_INFO("Freed %d envs\n", count);
-}
-
-void env_define(Env *local, const char *name, Object *value) {
+void env_define(Env *local, Object *name, Object *value) {
     Binding *b = malloc(sizeof(Binding));
-    b->name = xstrdup(name);
+    b->name = name;
     b->value = value;
     b->next = local->bindings;
     local->bindings = b;
-    DEBUG_PRINT_VERBOSE("env_define: env: %p, %s = %s\n", local, name, object_to_string(value));
+    DEBUG_PRINT_VERBOSE("env_define: env: %p, %s = %s, pointer to value: %p\n", local, object_to_string(name), object_to_string(value), value);
 }
 
-bool set(Env *local, const char *name, Object *value) {
-    DEBUG_PRINT_VERBOSE("set: env: %p, %s = %s\n", local, name, object_to_string(value));
+bool set(Env *local, Object *name, Object *value) {
+    DEBUG_PRINT_VERBOSE("set: env: %p, %s = %s\n", local, name->symbol, object_to_string(value));
     for (Env* level = local; level; level = level->parent) {
         for (Binding *b = level->bindings; b != NULL; b = b->next) {
-            if (strcmp(b->name, name) == 0) {
+            if (b->name == name) {
                 b->value = value;
                 return true;
             }
@@ -73,18 +28,18 @@ bool set(Env *local, const char *name, Object *value) {
     return false;
 }
 
-Object *env_lookup(Env *local, const char *name) {
-    DEBUG_PRINT_VERBOSE("enter: env_lookup: env: %p, %s\n", local, name);
+Object *env_lookup(Env *local, Object *name) {
+    DEBUG_PRINT_VERBOSE("enter: env_lookup: env: %p, %s\n", local, name->symbol);
     for (Env* level = local; level; level = level->parent) {
         DEBUG_PRINT_VERBOSE("env_lookup: level: %p\n", level);
         for (Binding *b = level->bindings; b != NULL; b = b->next) {
-            if (strcmp(b->name, name) == 0) {
-                DEBUG_PRINT_VERBOSE("env_lookup: env: %p, %s = %s\n", level, name, object_to_string(b->value));
+            if (b->name == name) {
+                DEBUG_PRINT_VERBOSE("env_lookup: env: %p, %s = %s, pointer to value: %p\n", level, name->symbol, object_to_string(b->value), b->value);
                 return b->value;
             }
         }
     }
-    DEBUG_PRINT_VERBOSE("env_lookup: env: %p, %s not found\n", local, name);
+    DEBUG_PRINT_VERBOSE("env_lookup: env: %p, %s not found\n", local, name->symbol);
     RAISE_ERROR("env_lookup: %s not found\n", name);
 }
 
@@ -93,6 +48,7 @@ Env* push_env(Env *local){
         RAISE_ERROR("expected enviroment\n");
     }
     Env* new = malloc(sizeof(Env));
+    new->marked = false;
     new->bindings = NULL;
     new->parent = local;
     track_envs(new);
