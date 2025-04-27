@@ -247,5 +247,5 @@ void gc_collect(void) {
     DEBUG_PRINT_INFO("Garbage collection started\n");
     mark_from_roots();
     sweep();
-    reset_envs();
+    sweep_envs();
 }
