@@ -96,6 +96,7 @@ void free_object(Object *obj) {
 }
 
 void free_all_objects() {
+    DEBUG_PRINT_INFO("free_all_objects:enter:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
     int count = 0;
     Object *current = allocated_objects;
     while (current) {
@@ -106,6 +107,7 @@ void free_all_objects() {
     }
     allocated_objects = NULL;
     DEBUG_PRINT_INFO("Freed %d objects\n", count);
+    DEBUG_PRINT_INFO("free_all_objects:leave:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
 }
 
 
@@ -209,32 +211,18 @@ void sweep(void) {
 void free_env(Env *env);
 
 void free_all_envs() {
+    DEBUG_PRINT_VERBOSE("free_all_envs:enter\n");
     int count = 0;
     Env *cur = allocated_envs;
     while (cur) {
         Env *next = cur->next_allocated;
-        free_env(cur);
+        free(cur);
         cur = next;
         count++;
     }
     allocated_envs = NULL;
     DEBUG_PRINT_INFO("Freed %d envs\n", count);
-}
-
-void free_env(Env *env) {
-    if (!env) 
-        RAISE_ERROR("free_env: env is NULL\n");
-
-    Binding *b = env->bindings;
-    while (b) {
-        Binding *next = b->next;
-        free(b->name);
-        // free(b->value); // Don't free value, it's managed by GC
-        free(b);
-        b = next;
-    }
-
-    free(env);
+    DEBUG_PRINT_VERBOSE("free_all_env:leave\n");
 }
 
 void sweep_envs(void) {
@@ -244,7 +232,7 @@ void sweep_envs(void) {
         Env *env = *p;
         if (!env->marked) {
             *p = env->next_allocated;      // unlink
-            free_env(env);        // free Env
+            free(env);        // free Env
             freed_count++;
         } else {
             env->marked = false;  // reset for next GC

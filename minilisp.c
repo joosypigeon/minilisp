@@ -61,8 +61,11 @@ void batch (char *filename) {
         gc_collect();  // Collect garbage after each evaluation
     }
     free(source);
+    DEBUG_PRINT_VERBOSE("batch: HELLO A\n");
     free_all_objects();
+    DEBUG_PRINT_VERBOSE("batch: HELLO B\n");
     free_all_envs();
+    DEBUG_PRINT_VERBOSE("batch: HELLO C\n");
 }
 
 // ───── Main ─────

@@ -20,5 +20,5 @@ eval.c:46: Invalid define form
 
 eval.c:33: handle_define: expected function name
 
-env.c:88: env_lookup: unknown-variable not found
+env.c:43: env_lookup:  not found
 
