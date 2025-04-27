@@ -96,7 +96,7 @@ void free_object(Object *obj) {
 }
 
 void free_all_objects() {
-    DEBUG_PRINT_INFO("free_all_objects:enter:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
+    DEBUG_PRINT_VERBOSE("free_all_objects:enter:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
     int count = 0;
     Object *current = allocated_objects;
     while (current) {
@@ -107,7 +107,7 @@ void free_all_objects() {
     }
     allocated_objects = NULL;
     DEBUG_PRINT_INFO("Freed %d objects\n", count);
-    DEBUG_PRINT_INFO("free_all_objects:leave:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
+    DEBUG_PRINT_VERBOSE("free_all_objects:leave:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
 }
 
 
